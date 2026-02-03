@@ -1,0 +1,65 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model User {
+  id                   String   @id @default(uuid())
+  username             String   @unique
+  // Public salt for KDF
+  salt                 String
+  // Authentication hash (derived from MasterKey, not the password itself)
+  authHash             String
+  // The encrypted VaultKey (wrapped with MasterKey)
+  encryptedVaultKey    String
+  // The VaultKey encrypted with the Recovery Key
+  encryptedRecoveryKey String?
+  
+  createdAt            DateTime @default(now())
+  
+  accounts             AccountEntry[]
+  sessions             Session[]
+  auditLogs            AuditLog[]
+}
+
+model Session {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tokenHash String   @unique // Hash of the session token
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+}
+
+model AccountEntry {
+  id             String   @id @default(uuid())
+  userId         String
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  // The core encrypted blob (JSON string encrypted with VaultKey)
+  encryptedData  String
+  // Initialization Vector for this entry
+  iv             String
+  
+  // Metadata for sorting/maintenance (Optional: could be encrypted too if willing to sacrifice functionality)
+  lastAccessedAt DateTime @default(now())
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}
+
+model AuditLog {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  action    String   // e.g. "LOGIN", "VIEW_ITEM", "FAILED_RECOVERY"
+  ipAddress String?
+  userAgent String?
+  timestamp DateTime @default(now())
+}
