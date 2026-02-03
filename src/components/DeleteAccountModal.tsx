@@ -1,8 +1,7 @@
-'use client';
-
 import { useState, useEffect } from 'react';
-import { ShieldAlert, Loader2, Trash2, X, Lock, KeyRound } from 'lucide-react';
+import { ShieldAlert, Loader2, Trash2, X, Lock, KeyRound, Cpu } from 'lucide-react';
 import { CryptoService } from '@/lib/crypto';
+import { EnvironmentService } from '@/lib/environment';
 
 interface Props {
     isOpen: boolean;
@@ -34,8 +33,9 @@ export default function DeleteAccountModal({ isOpen, onClose, onDeleted, usernam
         setError('');
 
         try {
-            // 1. Derive authHash locally (Zero-Knowledge)
-            const masterKey = await CryptoService.deriveMasterKey(password, salt);
+            // 1. Derive authHash locally (Context-Bound Decryption)
+            const fingerprint = await EnvironmentService.getFingerprint();
+            const masterKey = await CryptoService.deriveMasterKey(password, salt, fingerprint);
             const authHash = await CryptoService.hashMasterKeyForAuth(masterKey);
 
             // 2. Call Delete API

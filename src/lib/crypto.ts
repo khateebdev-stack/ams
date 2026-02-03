@@ -24,16 +24,23 @@ export class CryptoService {
     }
 
     /**
-     * Derives a Master Key from the password and salt using Argon2id
+     * Derives a Master Key from the password and salt using Argon2id.
+     * Optionally binds the key to a specific 'context' (Device Fingerprint).
      */
-    static async deriveMasterKey(password: string, saltHex: string): Promise<Uint8Array> {
+    static async deriveMasterKey(password: string, saltHex: string, context?: string): Promise<Uint8Array> {
         await this.init();
         const salt = sodium.from_hex(saltHex);
 
-        // Argon2id configuration (OWASP recommendations)
+        // Context-Bound Decryption (CBD) Logic:
+        // If context is provided, we mix it into the password to create a unique derivation input
+        // bound to this specific device/browser fingerprint.
+        const derivationInput = context
+            ? sodium.crypto_generichash(32, password + context)
+            : password;
+
         return sodium.crypto_pwhash(
-            32, // Key length (32 bytes = 256 bits)
-            password,
+            32,
+            derivationInput,
             salt,
             sodium.crypto_pwhash_OPSLIMIT_MODERATE,
             sodium.crypto_pwhash_MEMLIMIT_MODERATE,

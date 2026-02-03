@@ -1,8 +1,9 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { CryptoService } from '@/lib/crypto';
-import { Loader2, LockOpen, LogIn, Shield, ArrowLeft } from 'lucide-react';
+import { EnvironmentService } from '@/lib/environment';
+import { Loader2, LockOpen, LogIn, Shield, ArrowLeft, Cpu } from 'lucide-react';
 
 interface Props {
     onSuccess: (session: any) => void;
@@ -33,8 +34,9 @@ export default function LoginForm({ onSuccess, onSwitchToRegister, onOpenRecover
             if (!saltRes.ok || !saltData.salt) throw new Error('User not found or invalid');
             const salt = saltData.salt;
 
-            // 2. Derive Master Key
-            const masterKey = await CryptoService.deriveMasterKey(password, salt);
+            // 2. Derive Master Key with Context-Bound Decryption (CBD)
+            const fingerprint = await EnvironmentService.getFingerprint();
+            const masterKey = await CryptoService.deriveMasterKey(password, salt, fingerprint);
             const authHash = await CryptoService.hashMasterKeyForAuth(masterKey);
 
             // 3. Send Hash to Login API
@@ -157,9 +159,13 @@ export default function LoginForm({ onSuccess, onSwitchToRegister, onOpenRecover
     return (
         <form onSubmit={handleLogin} className="space-y-4 animate-in fade-in slide-in-from-bottom-4">
             <div className="text-center mb-6">
-                <h2 className="text-2xl font-bold text-emerald-400 flex justify-center items-center gap-2">
-                    <LockOpen className="w-6 h-6" /> Unlock Vault
+                <h2 className="text-2xl font-bold text-blue-400 italic flex justify-center items-center gap-2 tracking-tight">
+                    <LockOpen className="w-6 h-6 not-italic" /> UNLOCK AXIOM
                 </h2>
+                <div className="inline-flex items-center gap-1.5 px-2 py-1 bg-blue-500/10 border border-blue-500/20 rounded-full mt-3">
+                    <Cpu className="w-3 h-3 text-blue-400" />
+                    <span className="text-[10px] font-bold text-blue-400 uppercase tracking-widest">Secure Context Active</span>
+                </div>
             </div>
 
             {error && (
@@ -187,7 +193,7 @@ export default function LoginForm({ onSuccess, onSwitchToRegister, onOpenRecover
                     type="password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="w-full p-3 bg-slate-900 border border-slate-700 rounded focus:border-emerald-500 outline-none text-slate-200 transition-colors"
+                    className="w-full p-3 bg-slate-900 border border-slate-700 rounded focus:border-blue-500 outline-none text-slate-200 transition-colors"
                     placeholder="••••••••••••"
                     autoComplete="current-password"
                     required
@@ -197,15 +203,15 @@ export default function LoginForm({ onSuccess, onSwitchToRegister, onOpenRecover
             <button
                 type="submit"
                 disabled={loading}
-                className="w-full py-3 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white font-bold rounded flex justify-center items-center gap-2"
+                className="w-full py-4 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white font-bold rounded-xl flex justify-center items-center gap-2 transition-all shadow-lg shadow-blue-900/20"
             >
                 {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <LogIn className="w-4 h-4" />}
-                {loading ? 'Decrypting...' : 'Unlock'}
+                {loading ? 'Decrypting Access...' : 'Authenticate'}
             </button>
 
             <div className="flex justify-between items-center text-sm pt-4">
-                <button type="button" onClick={onSwitchToRegister} className="text-slate-400 hover:text-emerald-400 underline decoration-slate-600 hover:decoration-emerald-500 transition-all">
-                    New account
+                <button type="button" onClick={onSwitchToRegister} className="text-slate-400 hover:text-blue-400 underline decoration-slate-600 hover:decoration-blue-500 transition-all">
+                    Initialize Access
                 </button>
                 <button type="button" onClick={onOpenRecovery} className="text-slate-500 hover:text-slate-400">
                     Forgot Password?

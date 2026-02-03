@@ -254,8 +254,8 @@ export default function VaultDashboard({ session, onLogout, onOpenSettings }: Pr
         <div className="w-full max-w-4xl animate-in fade-in">
             <header className="flex justify-between items-center mb-8 p-4 bg-slate-900 rounded-lg border border-slate-800">
                 <div>
-                    <h1 className="text-xl font-bold text-emerald-400">Secure Vault</h1>
-                    <p className="text-xs text-slate-500">Logged in as {session.username}</p>
+                    <h1 className="text-xl font-bold text-blue-400 italic">AXIOM <span className="text-slate-500 not-italic font-medium text-xs ml-1 uppercase tracking-widest">Control Center</span></h1>
+                    <p className="text-[10px] text-slate-500 font-mono">Operator: {session.username}</p>
                 </div>
                 <div className="flex gap-2">
                     <button onClick={runSecurityScan} disabled={scanning} className="p-2 bg-blue-900/20 hover:bg-blue-900/40 text-blue-400 rounded flex gap-2 items-center text-sm font-bold transition-all disabled:opacity-50">

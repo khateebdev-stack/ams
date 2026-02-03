@@ -1,8 +1,7 @@
-'use client';
-
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { CryptoService } from '@/lib/crypto';
-import { Loader2, ShieldAlert, X } from 'lucide-react';
+import { EnvironmentService } from '@/lib/environment';
+import { Loader2, ShieldAlert, X, Cpu } from 'lucide-react';
 
 interface Props {
     isOpen: boolean;
@@ -17,6 +16,13 @@ export default function VerifyModal({ isOpen, onClose, onVerified, userSalt, exp
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
 
+    useEffect(() => {
+        if (isOpen) {
+            setPassword('');
+            setError('');
+        }
+    }, [isOpen]);
+
     if (!isOpen) return null;
 
     const handleVerify = async (e: React.FormEvent) => {
@@ -26,8 +32,10 @@ export default function VerifyModal({ isOpen, onClose, onVerified, userSalt, exp
 
         try {
             await CryptoService.init();
-            // 1. Derive Key from entered password
-            const masterKey = await CryptoService.deriveMasterKey(password, userSalt);
+            // 1. Derive Key from entered password with Context-Bound Decryption (CBD)
+            const fingerprint = await EnvironmentService.getFingerprint();
+            const masterKey = await CryptoService.deriveMasterKey(password, userSalt, fingerprint);
+
             // 2. Hash it to compare with existing authHash
             const authHash = await CryptoService.hashMasterKeyForAuth(masterKey);
 
@@ -36,7 +44,7 @@ export default function VerifyModal({ isOpen, onClose, onVerified, userSalt, exp
                 setPassword('');
                 onClose();
             } else {
-                setError('Incorrect Master Password');
+                setError('Authentication Failed: Check Master Password or Secure Context');
             }
         } catch (err) {
             setError('Verification failed');

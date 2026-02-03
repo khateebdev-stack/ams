@@ -1,8 +1,9 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { CryptoService } from '@/lib/crypto';
-import { Loader2, ShieldCheck, KeyRound, AlertTriangle, Wand2, RefreshCw } from 'lucide-react';
+import { EnvironmentService } from '@/lib/environment';
+import { Loader2, ShieldCheck, KeyRound, AlertTriangle, Wand2, RefreshCw, Cpu } from 'lucide-react';
 import { getPasswordStrength } from '@/lib/strength';
 import { generateSecurePassword } from '@/lib/generator';
 import { clsx } from 'clsx';
@@ -31,9 +32,10 @@ export default function RegisterForm({ onSuccess, onSwitchToLogin }: Props) {
         try {
             await CryptoService.init();
 
-            // 1. Generate Salt & Master Key
+            // 1. Generate Salt & Master Key with Context-Bound Decryption (CBD)
             const salt = CryptoService.generateSalt();
-            const masterKey = await CryptoService.deriveMasterKey(password, salt);
+            const fingerprint = await EnvironmentService.getFingerprint();
+            const masterKey = await CryptoService.deriveMasterKey(password, salt, fingerprint);
             const authHash = await CryptoService.hashMasterKeyForAuth(masterKey);
 
             // 2. Generate Vault Key (The real key)
@@ -105,10 +107,10 @@ export default function RegisterForm({ onSuccess, onSwitchToLogin }: Props) {
                     </p>
                 </div>
                 <button
-                    onClick={onSuccess} // Continue to dashboard/success
-                    className="w-full py-4 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl transition-all"
+                    onClick={onSuccess}
+                    className="w-full py-4 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-xl shadow-lg shadow-blue-900/20 transition-all"
                 >
-                    I have saved it, Let's Go!
+                    I have saved it, Initialize Axiom
                 </button>
             </div>
         );
@@ -117,10 +119,13 @@ export default function RegisterForm({ onSuccess, onSwitchToLogin }: Props) {
     return (
         <form onSubmit={handleRegister} className="space-y-4 animate-in fade-in slide-in-from-bottom-4">
             <div className="text-center mb-6">
-                <h2 className="text-2xl font-bold text-emerald-400 flex justify-center items-center gap-2">
-                    <ShieldCheck className="w-6 h-6" /> Register Safe Account
+                <h2 className="text-2xl font-bold text-blue-400 italic flex justify-center items-center gap-2 tracking-tight">
+                    <ShieldCheck className="w-6 h-6 not-italic" /> INITIALIZE AXIOM
                 </h2>
-                <p className="text-slate-500 text-sm">Zero-Knowledge Encryption</p>
+                <div className="inline-flex items-center gap-1.5 px-2 py-1 bg-blue-500/10 border border-blue-500/20 rounded-full mt-3">
+                    <Cpu className="w-3 h-3 text-blue-400" />
+                    <span className="text-[10px] font-bold text-blue-400 uppercase tracking-widest">Environment-Bound Keys Active</span>
+                </div>
             </div>
 
             {error && (
@@ -135,7 +140,7 @@ export default function RegisterForm({ onSuccess, onSwitchToLogin }: Props) {
                     type="text"
                     value={username}
                     onChange={(e) => setUsername(e.target.value)}
-                    className="w-full p-3 bg-slate-900 border border-slate-700 rounded focus:border-emerald-500 outline-none text-slate-200"
+                    className="w-full p-3 bg-slate-900 border border-slate-700 rounded focus:border-blue-500 outline-none text-slate-200"
                     placeholder="unique_username"
                     required
                 />
@@ -147,7 +152,7 @@ export default function RegisterForm({ onSuccess, onSwitchToLogin }: Props) {
                     <button
                         type="button"
                         onClick={async () => setPassword(await generateSecurePassword(24))}
-                        className="text-emerald-500 hover:text-emerald-400 flex items-center gap-1 normal-case"
+                        className="text-blue-500 hover:text-blue-400 flex items-center gap-1 normal-case"
                     >
                         <Wand2 className="w-3 h-3" /> Generate Weak-Proof Password
                     </button>
@@ -157,7 +162,7 @@ export default function RegisterForm({ onSuccess, onSwitchToLogin }: Props) {
                         type="password"
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
-                        className="w-full p-3 bg-slate-900 border border-slate-700 rounded focus:border-emerald-500 outline-none text-slate-200"
+                        className="w-full p-3 bg-slate-900 border border-slate-700 rounded focus:border-blue-500 outline-none text-slate-200"
                         placeholder="Strong password (min 12 chars recommended)"
                         required
                     />
@@ -183,15 +188,15 @@ export default function RegisterForm({ onSuccess, onSwitchToLogin }: Props) {
             <button
                 type="submit"
                 disabled={loading}
-                className="w-full py-3 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white font-bold rounded flex justify-center items-center gap-2"
+                className="w-full py-4 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white font-bold rounded-xl transition-all shadow-lg shadow-blue-900/20"
             >
                 {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <KeyRound className="w-4 h-4" />}
-                {loading ? 'Generating Keys...' : 'Create Account'}
+                {loading ? 'Initializing Axiom Core...' : 'Create Master Access'}
             </button>
 
             <div className="text-center pt-4">
-                <button type="button" onClick={onSwitchToLogin} className="text-sm text-slate-400 hover:text-emerald-400">
-                    Already have an account? Login
+                <button type="button" onClick={onSwitchToLogin} className="text-sm text-slate-400 hover:text-blue-400">
+                    Already an Axiom Operator? Login
                 </button>
             </div>
         </form>

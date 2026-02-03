@@ -43,10 +43,10 @@ export default function Home() {
           <div className="w-16 h-16 bg-emerald-900/30 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-emerald-500/30">
             <Shield className="w-8 h-8 text-emerald-400" />
           </div>
-          <h1 className="text-4xl font-bold tracking-tight bg-gradient-to-r from-emerald-400 to-teal-200 bg-clip-text text-transparent">
-            Zero-Knowledge Vault
+          <h1 className="text-4xl font-bold tracking-tight bg-gradient-to-r from-blue-400 to-indigo-300 bg-clip-text text-transparent italic">
+            AXIOM
           </h1>
-          <p className="text-slate-500 mt-2">Your secrets, encrypted by YOU, for YOU.</p>
+          <p className="text-slate-500 mt-2 font-medium tracking-wide uppercase text-[10px]">Advanced Security Control System</p>
         </div>
       )}
 
