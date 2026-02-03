@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { ShieldAlert, Loader2, Trash2, X, Lock, KeyRound, Cpu } from 'lucide-react';
+import { ShieldAlert, Loader2, Trash2, X, Lock, KeyRound, Cpu, Eye, EyeOff } from 'lucide-react';
 import { CryptoService } from '@/lib/crypto';
 import { EnvironmentService } from '@/lib/environment';
 
@@ -15,6 +15,7 @@ interface Props {
 
 export default function DeleteAccountModal({ isOpen, onClose, onDeleted, username, token, salt, twoFactorEnabled }: Props) {
     const [password, setPassword] = useState('');
+    const [showPassword, setShowPassword] = useState(false);
     const [code, setCode] = useState('');
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
@@ -22,6 +23,7 @@ export default function DeleteAccountModal({ isOpen, onClose, onDeleted, usernam
     useEffect(() => {
         if (isOpen) {
             setPassword('');
+            setShowPassword(false);
             setCode('');
             setError('');
         }
@@ -96,14 +98,23 @@ export default function DeleteAccountModal({ isOpen, onClose, onDeleted, usernam
                         <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1 flex items-center gap-1">
                             <Lock className="w-3 h-3" /> Verify Master Password
                         </label>
-                        <input
-                            type="password"
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                            placeholder="Confirm master password"
-                            className="w-full p-4 bg-black border border-slate-700 rounded-xl text-white focus:border-red-500 outline-none transition-all"
-                            required
-                        />
+                        <div className="relative group">
+                            <input
+                                type={showPassword ? "text" : "password"}
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
+                                placeholder="Confirm master password"
+                                className="w-full p-4 pr-12 bg-black border border-slate-700 rounded-xl text-white focus:border-red-500 outline-none transition-all placeholder:text-slate-600"
+                                required
+                            />
+                            <button
+                                type="button"
+                                onClick={() => setShowPassword(!showPassword)}
+                                className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 hover:text-red-400 transition-colors"
+                            >
+                                {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                            </button>
+                        </div>
                     </div>
 
                     {twoFactorEnabled && (

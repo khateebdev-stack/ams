@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { CryptoService } from '@/lib/crypto';
 import { EnvironmentService } from '@/lib/environment';
-import { Loader2, LockOpen, LogIn, Shield, ArrowLeft, Cpu } from 'lucide-react';
+import { Loader2, LockOpen, LogIn, Shield, ArrowLeft, Cpu, Eye, EyeOff } from 'lucide-react';
 
 interface Props {
     onSuccess: (session: any) => void;
@@ -14,6 +14,7 @@ interface Props {
 export default function LoginForm({ onSuccess, onSwitchToRegister, onOpenRecovery }: Props) {
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
+    const [showPassword, setShowPassword] = useState(false);
     const [twoFactorCode, setTwoFactorCode] = useState('');
     const [show2FA, setShow2FA] = useState(false);
     const [loginContext, setLoginContext] = useState<{ masterKey: Uint8Array, authHash: string, salt: string } | null>(null);
@@ -189,15 +190,24 @@ export default function LoginForm({ onSuccess, onSwitchToRegister, onOpenRecover
 
             <div className="mb-4">
                 <label className="block text-xs uppercase text-slate-500 font-bold mb-1">Master Password</label>
-                <input
-                    type="password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    className="w-full p-3 bg-slate-900 border border-slate-700 rounded focus:border-blue-500 outline-none text-slate-200 transition-colors"
-                    placeholder="••••••••••••"
-                    autoComplete="current-password"
-                    required
-                />
+                <div className="relative group">
+                    <input
+                        type={showPassword ? "text" : "password"}
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        className="w-full p-3 pr-10 bg-slate-900 border border-slate-700 rounded focus:border-blue-500 outline-none text-slate-200 transition-colors"
+                        placeholder="••••••••••••"
+                        autoComplete="current-password"
+                        required
+                    />
+                    <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-blue-400 transition-colors"
+                    >
+                        {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
+                </div>
             </div>
 
             <button

@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { CryptoService } from '@/lib/crypto';
 import { EnvironmentService } from '@/lib/environment';
-import { Loader2, ShieldCheck, KeyRound, AlertTriangle, Wand2, RefreshCw, Cpu } from 'lucide-react';
+import { Loader2, ShieldCheck, KeyRound, AlertTriangle, Wand2, RefreshCw, Cpu, Eye, EyeOff } from 'lucide-react';
 import { getPasswordStrength } from '@/lib/strength';
 import { generateSecurePassword } from '@/lib/generator';
 import { clsx } from 'clsx';
@@ -17,6 +17,7 @@ interface Props {
 export default function RegisterForm({ onSuccess, onSwitchToLogin }: Props) {
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
+    const [showPassword, setShowPassword] = useState(false);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
     const [step, setStep] = useState<'form' | 'recovery'>('form');
@@ -157,15 +158,22 @@ export default function RegisterForm({ onSuccess, onSwitchToLogin }: Props) {
                         <Wand2 className="w-3 h-3" /> Generate Weak-Proof Password
                     </button>
                 </label>
-                <div className="relative">
+                <div className="relative group">
                     <input
-                        type="password"
+                        type={showPassword ? "text" : "password"}
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
-                        className="w-full p-3 bg-slate-900 border border-slate-700 rounded focus:border-blue-500 outline-none text-slate-200"
+                        className="w-full p-3 pr-10 bg-slate-900 border border-slate-700 rounded focus:border-blue-500 outline-none text-slate-200 transition-colors"
                         placeholder="Strong password (min 12 chars recommended)"
                         required
                     />
+                    <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-blue-400 transition-colors"
+                    >
+                        {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
                 </div>
 
                 {/* Strength Meter */}

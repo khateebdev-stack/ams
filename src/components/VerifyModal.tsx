@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { CryptoService } from '@/lib/crypto';
 import { EnvironmentService } from '@/lib/environment';
-import { Loader2, ShieldAlert, X, Cpu } from 'lucide-react';
+import { Loader2, ShieldAlert, X, Cpu, Eye, EyeOff } from 'lucide-react';
 
 interface Props {
     isOpen: boolean;
@@ -13,12 +13,14 @@ interface Props {
 
 export default function VerifyModal({ isOpen, onClose, onVerified, userSalt, expectedAuthHash }: Props) {
     const [password, setPassword] = useState('');
+    const [showPassword, setShowPassword] = useState(false);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
 
     useEffect(() => {
         if (isOpen) {
             setPassword('');
+            setShowPassword(false);
             setError('');
         }
     }, [isOpen]);
@@ -79,17 +81,26 @@ export default function VerifyModal({ isOpen, onClose, onVerified, userSalt, exp
                         </div>
                     )}
 
-                    <input
-                        type="password"
-                        name="master-pass-verify"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        className="w-full p-3 bg-black border border-slate-700 rounded text-white focus:border-red-500 outline-none transition-all placeholder:text-slate-700"
-                        placeholder="Master Password"
-                        autoComplete="new-password"
-                        autoFocus
-                        required
-                    />
+                    <div className="relative group">
+                        <input
+                            type={showPassword ? "text" : "password"}
+                            name="master-pass-verify"
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                            className="w-full p-3 pr-10 bg-black border border-slate-700 rounded text-white focus:border-red-500 outline-none transition-all placeholder:text-slate-700"
+                            placeholder="Master Password"
+                            autoComplete="new-password"
+                            autoFocus
+                            required
+                        />
+                        <button
+                            type="button"
+                            onClick={() => setShowPassword(!showPassword)}
+                            className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-red-400 transition-colors"
+                        >
+                            {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                        </button>
+                    </div>
 
                     <button
                         type="submit"

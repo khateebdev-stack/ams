@@ -48,6 +48,7 @@ export default function VaultDashboard({ session, onLogout, onOpenSettings }: Pr
     const [newSite, setNewSite] = useState('');
     const [newUser, setNewUser] = useState('');
     const [newPass, setNewPass] = useState('');
+    const [showFormPass, setShowFormPass] = useState(false);
     const [newCategory, setNewCategory] = useState('');
     const [newNotes, setNewNotes] = useState('');
     const [itemBreachCount, setItemBreachCount] = useState<number | null>(null);
@@ -231,6 +232,7 @@ export default function VaultDashboard({ session, onLogout, onOpenSettings }: Pr
         setNewSite('');
         setNewUser('');
         setNewPass('');
+        setShowFormPass(false);
         setNewCategory('');
         setNewNotes('');
         setEditingId(null);
@@ -255,7 +257,11 @@ export default function VaultDashboard({ session, onLogout, onOpenSettings }: Pr
             <header className="flex justify-between items-center mb-8 p-4 bg-slate-900 rounded-lg border border-slate-800">
                 <div>
                     <h1 className="text-xl font-bold text-blue-400 italic">AXIOM <span className="text-slate-500 not-italic font-medium text-xs ml-1 uppercase tracking-widest">Control Center</span></h1>
-                    <p className="text-[10px] text-slate-500 font-mono">Operator: {session.username}</p>
+                    <div className="flex items-center gap-2 mt-0.5">
+                        <p className="text-[10px] text-slate-500 font-mono tracking-tighter uppercase">Operator: {session.username}</p>
+                        <span className="w-1 h-1 bg-blue-500 rounded-full animate-pulse" />
+                        <span className="text-[8px] text-blue-500/80 font-bold uppercase tracking-widest">Secure Context Active</span>
+                    </div>
                 </div>
                 <div className="flex gap-2">
                     <button onClick={runSecurityScan} disabled={scanning} className="p-2 bg-blue-900/20 hover:bg-blue-900/40 text-blue-400 rounded flex gap-2 items-center text-sm font-bold transition-all disabled:opacity-50">
@@ -390,7 +396,7 @@ export default function VaultDashboard({ session, onLogout, onOpenSettings }: Pr
                                     value={newSite}
                                     onChange={e => setNewSite(e.target.value)}
                                     placeholder="e.g. Gmail, Netflix..."
-                                    className="w-full p-3 bg-black border border-slate-700 rounded text-white focus:border-emerald-500 outline-none transition-colors"
+                                    className="w-full p-3 bg-black border border-slate-700 rounded text-white focus:border-blue-500 outline-none transition-all placeholder:text-slate-700"
                                     required
                                     autoComplete="off"
                                 />
@@ -406,7 +412,7 @@ export default function VaultDashboard({ session, onLogout, onOpenSettings }: Pr
                                     value={newCategory}
                                     onChange={e => setNewCategory(e.target.value)}
                                     placeholder="e.g. Work, Social..."
-                                    className="w-full p-3 bg-black border border-slate-700 rounded text-white focus:border-emerald-500 outline-none transition-colors"
+                                    className="w-full p-3 bg-black border border-slate-700 rounded text-white focus:border-blue-500 outline-none transition-all placeholder:text-slate-700"
                                     autoComplete="off"
                                 />
                                 <datalist id="category-list">
@@ -421,7 +427,7 @@ export default function VaultDashboard({ session, onLogout, onOpenSettings }: Pr
                                     value={newUser}
                                     onChange={e => setNewUser(e.target.value)}
                                     placeholder="e.g. user@example.com"
-                                    className="w-full p-3 bg-black border border-slate-700 rounded text-white focus:border-emerald-500 outline-none transition-colors"
+                                    className="w-full p-3 bg-black border border-slate-700 rounded text-white focus:border-blue-500 outline-none transition-all placeholder:text-slate-700"
                                     required
                                     autoComplete="off"
                                 />
@@ -433,33 +439,35 @@ export default function VaultDashboard({ session, onLogout, onOpenSettings }: Pr
                             <div>
                                 <label className="block text-xs font-bold text-slate-500 uppercase mb-1 flex justify-between">
                                     {editingId ? 'New Password' : 'Password'}
-                                    <button
-                                        type="button"
-                                        onClick={async () => setNewPass(await generateSecurePassword(24))}
-                                        className="text-emerald-500 hover:text-emerald-400 flex items-center gap-1 normal-case"
-                                    >
-                                        <Wand2 className="w-3 h-3" /> Generate
-                                    </button>
                                 </label>
-                                <div className="relative">
+                                <div className="relative group">
                                     <input
                                         value={newPass}
                                         onChange={e => setNewPass(e.target.value)}
                                         placeholder={editingId ? "Leave empty for NO change" : "Secret Password"}
-                                        type="text"
-                                        className="w-full p-3 bg-black border border-slate-700 rounded text-white font-mono focus:border-emerald-500 outline-none transition-colors"
+                                        type={showFormPass ? "text" : "password"}
+                                        className="w-full p-3 pr-20 bg-black border border-slate-700 rounded text-white font-mono focus:border-blue-500 outline-none transition-all placeholder:text-slate-700"
                                         required={!editingId}
                                         autoComplete="new-password"
                                     />
-                                    {newPass && (
+                                    <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1">
+                                        <button
+                                            type="button"
+                                            onClick={() => setShowFormPass(!showFormPass)}
+                                            className="p-1.5 text-slate-500 hover:text-blue-400 transition-colors"
+                                            title={showFormPass ? "Hide Password" : "Show Password"}
+                                        >
+                                            {showFormPass ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                                        </button>
                                         <button
                                             type="button"
                                             onClick={async () => setNewPass(await generateSecurePassword(24))}
-                                            className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-600 hover:text-emerald-500 transition-colors"
+                                            className="p-1.5 text-slate-500 hover:text-blue-400 transition-colors"
+                                            title="Generate Secure Password"
                                         >
                                             <RefreshCw className="w-4 h-4" />
                                         </button>
-                                    )}
+                                    </div>
                                 </div>
                                 {newPass && (
                                     <div className="mt-2 space-y-1">
@@ -478,12 +486,12 @@ export default function VaultDashboard({ session, onLogout, onOpenSettings }: Pr
                                 {itemBreachCount !== null && (
                                     <div className={clsx(
                                         "mt-2 p-2 rounded flex items-center gap-2 text-[10px] font-bold uppercase",
-                                        itemBreachCount > 0 ? "bg-red-500/10 text-red-400 border border-red-500/20" : "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
+                                        itemBreachCount > 0 ? "bg-red-500/10 text-red-400 border border-red-500/20" : "bg-blue-500/10 text-blue-400 border border-blue-500/20"
                                     )}>
                                         {itemBreachCount > 0 ? (
-                                            <><ShieldAlert className="w-3 h-3" /> Compromised in {itemBreachCount} data breaches! Change immediately.</>
+                                            <><ShieldAlert className="w-3 h-3 text-red-400" /> Compromised in {itemBreachCount} data breaches!</>
                                         ) : (
-                                            <><CheckCircle className="w-3 h-3" /> No known breaches found for this password.</>
+                                            <><CheckCircle className="w-3 h-3 text-blue-400" /> No known breaches found.</>
                                         )}
                                     </div>
                                 )}
@@ -495,16 +503,16 @@ export default function VaultDashboard({ session, onLogout, onOpenSettings }: Pr
                             <textarea
                                 value={newNotes}
                                 onChange={e => setNewNotes(e.target.value)}
-                                placeholder="Additional details, security questions, etc."
-                                className="w-full p-3 bg-black border border-slate-700 rounded text-white focus:border-emerald-500 outline-none transition-colors h-24 resize-none"
+                                placeholder="Additional details, private notes..."
+                                className="w-full p-3 bg-black border border-slate-700 rounded text-white focus:border-blue-500 outline-none transition-all h-24 resize-none placeholder:text-slate-700"
                                 autoComplete="off"
                             />
                         </div>
 
-                        <div className="flex gap-2 pt-4">
-                            <button type="button" onClick={resetForm} className="flex-1 py-3 bg-slate-800 hover:bg-slate-700 rounded text-slate-300 font-bold transition-colors">Cancel</button>
-                            <button type="submit" className="flex-1 py-3 bg-emerald-600 hover:bg-emerald-500 rounded text-white font-bold transition-colors shadow-lg shadow-emerald-900/20">
-                                {editingId ? 'Update secret' : 'Save Secret'}
+                        <div className="flex gap-3 pt-4">
+                            <button type="button" onClick={resetForm} className="flex-1 py-4 bg-slate-800 hover:bg-slate-700 rounded-xl text-slate-300 font-bold transition-all">Cancel</button>
+                            <button type="submit" className="flex-1 py-4 bg-blue-600 hover:bg-blue-500 rounded-xl text-white font-bold transition-all shadow-lg shadow-blue-900/20">
+                                {editingId ? 'Update Access' : 'Secure and Save'}
                             </button>
                         </div>
                     </form>

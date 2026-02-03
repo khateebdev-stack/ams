@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Shield, Download, Lock, ArrowLeft, Terminal, AlertTriangle, Eye, RefreshCw, KeyRound, CheckCircle2, Wand2, Loader2, Trash2 } from 'lucide-react';
+import { Shield, Download, Lock, ArrowLeft, Terminal, AlertTriangle, Eye, EyeOff, RefreshCw, KeyRound, CheckCircle2, Wand2, Loader2, Trash2 } from 'lucide-react';
 import VerifyModal from './VerifyModal';
 import { CryptoService } from '@/lib/crypto';
 import { getPasswordStrength } from '@/lib/strength';
@@ -42,6 +42,8 @@ export default function Settings({ session, onBack, onUpdateSession }: Props) {
     const [showChangePass, setShowChangePass] = useState(false);
     const [newMasterPass, setNewMasterPass] = useState('');
     const [confirmPass, setConfirmPass] = useState('');
+    const [showNewPass, setShowNewPass] = useState(false);
+    const [showConfirmPass, setShowConfirmPass] = useState(false);
     const [changeLoading, setChangeLoading] = useState(false);
 
     const strength = getPasswordStrength(newMasterPass);
@@ -93,27 +95,27 @@ export default function Settings({ session, onBack, onUpdateSession }: Props) {
         const doc = new jsPDF();
 
         // Header
-        doc.setFillColor(16, 185, 129); // Emerald-500
+        doc.setFillColor(59, 130, 246); // Blue-500
         doc.rect(0, 0, 210, 40, 'F');
         doc.setTextColor(255, 255, 255);
         doc.setFontSize(24);
-        doc.text("SECURE VAULT EMERGENCY KIT", 105, 25, { align: 'center' });
+        doc.text("AXIOM EMERGENCY RECOVERY KIT", 105, 25, { align: 'center' });
 
         // Content
         doc.setTextColor(0, 0, 0);
         doc.setFontSize(12);
-        doc.text(`Username: ${session.username}`, 20, 50);
-        doc.text(`Generated: ${new Date().toLocaleString()}`, 20, 60);
+        doc.text(`Axiom Identifier: ${session.username}`, 20, 50);
+        doc.text(`Initialization Date: ${new Date().toLocaleString()}`, 20, 60);
 
         doc.setDrawColor(200, 200, 200);
         doc.line(20, 70, 190, 70);
 
         doc.setFontSize(14);
         doc.setFont("helvetica", "bold");
-        doc.text("YOUR RECOVERY KEY", 105, 85, { align: 'center' });
+        doc.text("YOUR MASTER RECOVERY KEY", 105, 85, { align: 'center' });
 
         doc.setFontSize(16);
-        doc.setTextColor(5, 150, 105);
+        doc.setTextColor(37, 99, 235);
         doc.text(decryptedKey || "REVEAL ON SETTINGS PAGE TO DOWNLOAD FULL KIT", 105, 100, { align: 'center' });
 
         doc.setTextColor(0, 0, 0);
@@ -182,7 +184,7 @@ export default function Settings({ session, onBack, onUpdateSession }: Props) {
                         <ArrowLeft className="w-6 h-6" />
                     </button>
                     <h1 className="text-3xl font-bold text-white flex items-center gap-3">
-                        <Shield className="w-8 h-8 text-emerald-500" /> Security Settings
+                        <Shield className="w-8 h-8 text-blue-500" /> Axiom Control Center
                     </h1>
                 </div>
 
@@ -199,15 +201,15 @@ export default function Settings({ session, onBack, onUpdateSession }: Props) {
                             <h3 className="text-xl font-bold text-white mb-1">Emergency Kit</h3>
                             <p className="text-slate-400 text-sm">Your "Master Key" to restore access if you ever lose your password.</p>
                         </div>
-                        <div className="p-3 bg-emerald-500/10 rounded-full">
-                            <Download className="w-6 h-6 text-emerald-500" />
+                        <div className="p-3 bg-blue-500/10 rounded-full">
+                            <Download className="w-6 h-6 text-blue-500" />
                         </div>
                     </div>
 
                     <div className="space-y-4">
                         {decryptedKey ? (
                             <>
-                                <div className="p-4 bg-black rounded border border-emerald-500/30 font-mono text-emerald-400 break-all select-all text-center text-lg shadow-inner">
+                                <div className="p-4 bg-black rounded border border-blue-500/30 font-mono text-blue-400 break-all select-all text-center text-lg shadow-inner">
                                     {decryptedKey}
                                 </div>
                                 <div className="p-4 bg-amber-900/10 border border-amber-500/30 rounded-lg">
@@ -222,13 +224,13 @@ export default function Settings({ session, onBack, onUpdateSession }: Props) {
                                 onClick={() => setShowVerify(true)}
                                 className="w-full py-4 bg-slate-800 hover:bg-slate-700 text-white rounded-xl flex items-center justify-center gap-2 transition-all font-bold group"
                             >
-                                <Eye className="w-5 h-5 group-hover:text-emerald-400" /> Reveal Recovery Key
+                                <Eye className="w-5 h-5 group-hover:text-blue-400" /> Reveal Master Recovery Key
                             </button>
                         )}
 
                         <button
                             onClick={downloadPDF}
-                            className="w-full py-4 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl shadow-lg shadow-emerald-900/20 transition-all flex items-center justify-center gap-2"
+                            className="w-full py-4 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-xl shadow-lg shadow-blue-900/20 transition-all flex items-center justify-center gap-2"
                         >
                             <Download className="w-5 h-5" /> Download Emergency Kit (.PDF)
                         </button>
@@ -288,15 +290,22 @@ export default function Settings({ session, onBack, onUpdateSession }: Props) {
                                             <Wand2 className="w-3 h-3" /> Auto-Generate
                                         </button>
                                     </label>
-                                    <div className="relative">
+                                    <div className="relative group">
                                         <input
-                                            type="password"
+                                            type={showNewPass ? "text" : "password"}
                                             value={newMasterPass}
                                             onChange={e => setNewMasterPass(e.target.value)}
-                                            className="w-full p-3 bg-black border border-slate-700 rounded text-white focus:border-emerald-500 outline-none"
+                                            className="w-full p-3 pr-20 bg-black border border-slate-700 rounded text-white focus:border-blue-500 outline-none transition-all"
                                             required
                                         />
-                                        {newMasterPass && (
+                                        <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1">
+                                            <button
+                                                type="button"
+                                                onClick={() => setShowNewPass(!showNewPass)}
+                                                className="p-1.5 text-slate-500 hover:text-blue-400 transition-colors"
+                                            >
+                                                {showNewPass ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                                            </button>
                                             <button
                                                 type="button"
                                                 onClick={async () => {
@@ -304,11 +313,11 @@ export default function Settings({ session, onBack, onUpdateSession }: Props) {
                                                     setNewMasterPass(p);
                                                     setConfirmPass(p);
                                                 }}
-                                                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-600 hover:text-blue-500"
+                                                className="p-1.5 text-slate-600 hover:text-blue-500"
                                             >
                                                 <RefreshCw className="w-4 h-4" />
                                             </button>
-                                        )}
+                                        </div>
                                     </div>
 
                                     {/* Strength Meter */}
@@ -329,13 +338,22 @@ export default function Settings({ session, onBack, onUpdateSession }: Props) {
                                 </div>
                                 <div>
                                     <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Confirm New Password</label>
-                                    <input
-                                        type="password"
-                                        value={confirmPass}
-                                        onChange={e => setConfirmPass(e.target.value)}
-                                        className="w-full p-3 bg-black border border-slate-700 rounded text-white focus:border-emerald-500 outline-none"
-                                        required
-                                    />
+                                    <div className="relative group">
+                                        <input
+                                            type={showConfirmPass ? "text" : "password"}
+                                            value={confirmPass}
+                                            onChange={e => setConfirmPass(e.target.value)}
+                                            className="w-full p-3 pr-10 bg-black border border-slate-700 rounded text-white focus:border-blue-500 outline-none transition-all"
+                                            required
+                                        />
+                                        <button
+                                            type="button"
+                                            onClick={() => setShowConfirmPass(!showConfirmPass)}
+                                            className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-blue-400 transition-colors"
+                                        >
+                                            {showConfirmPass ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                                        </button>
+                                    </div>
                                 </div>
                                 <div className="flex gap-2 pt-2">
                                     <button type="button" onClick={() => setShowChangePass(false)} className="flex-1 py-3 bg-slate-800 hover:bg-slate-700 text-white rounded-lg font-bold">Cancel</button>
