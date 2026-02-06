@@ -1031,6 +1031,24 @@
       "metadata": {
         "itemCount": 0
       }
+    },
+    {
+      "id": "8a3dc19c-8a2e-4d5b-b0a4-8e633129a855",
+      "createdAt": "2026-02-05T11:35:29.337Z",
+      "username": "skrmc@2013",
+      "event": "LOGIN_FAILURE",
+      "metadata": {
+        "reason": "Invalid hash"
+      }
+    },
+    {
+      "id": "c23cb2f8-eee9-4a1e-bbcd-d97cb16d424b",
+      "createdAt": "2026-02-05T11:35:39.430Z",
+      "username": "skrmc@2013",
+      "event": "LOGIN_FAILURE",
+      "metadata": {
+        "reason": "Invalid hash"
+      }
     }
   ]
 }

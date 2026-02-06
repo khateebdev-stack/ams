@@ -2,12 +2,11 @@
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
 generator client {
-  provider = "prisma-client-js"
+  provider = "prisma-client"
 }
 
 datasource db {
   provider = "sqlite"
-  url      = "file:./dev.db"
 }
 
 model User {
@@ -24,6 +23,7 @@ model User {
   
   createdAt            DateTime @default(now())
   
+  vaults               Vault[]
   accounts             AccountEntry[]
   sessions             Session[]
   auditLogs            AuditLog[]
@@ -38,17 +38,36 @@ model Session {
   createdAt DateTime @default(now())
 }
 
+model Vault {
+  id              String   @id @default(uuid())
+  userId          String
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  name            String
+  icon            String   @default("Lock") // Lucide icon name
+  
+  // The sub-vault key wrapped by the user's Master Vault Key
+  encryptedSubKey String
+  iv              String   // Nonce for the sub-key encryption
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  entries         AccountEntry[]
+}
+
 model AccountEntry {
   id             String   @id @default(uuid())
   userId         String
   user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   
-  // The core encrypted blob (JSON string encrypted with VaultKey)
+  vaultId        String?
+  vault          Vault?   @relation(fields: [vaultId], references: [id], onDelete: Cascade)
+  
+  // The core encrypted blob (JSON string encrypted with the Sub-Vault Key)
   encryptedData  String
-  // Initialization Vector for this entry
   iv             String
   
-  // Metadata for sorting/maintenance (Optional: could be encrypted too if willing to sacrifice functionality)
   lastAccessedAt DateTime @default(now())
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
@@ -58,7 +77,7 @@ model AuditLog {
   id        String   @id @default(uuid())
   userId    String
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  action    String   // e.g. "LOGIN", "VIEW_ITEM", "FAILED_RECOVERY"
+  action    String   
   ipAddress String?
   userAgent String?
   timestamp DateTime @default(now())
