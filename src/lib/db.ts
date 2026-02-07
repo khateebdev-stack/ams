@@ -16,15 +16,23 @@ interface DB {
     users: any[];
     sessions: any[];
     items: any[];
+    vaults: any[]; // New
     auditLogs: any[];
 }
 
 function readDB(): DB {
     try {
         const data = fs.readFileSync(DB_FILE, 'utf-8');
-        return JSON.parse(data);
+        const parsed = JSON.parse(data);
+        return {
+            users: parsed.users || [],
+            sessions: parsed.sessions || [],
+            items: parsed.items || [],
+            vaults: parsed.vaults || [],
+            auditLogs: parsed.auditLogs || []
+        };
     } catch (e) {
-        return { users: [], sessions: [], items: [], auditLogs: [] };
+        return { users: [], sessions: [], items: [], vaults: [], auditLogs: [] };
     }
 }
 
@@ -56,11 +64,32 @@ export const db = {
         delete: async ({ where }: any) => {
             const db = readDB();
             db.users = db.users.filter(u => u.id !== where.id && u.username !== where.username);
-            // Also cleanup related data
             db.sessions = db.sessions.filter(s => s.userId !== where.id);
             db.items = db.items.filter(i => i.userId !== where.id);
+            db.vaults = db.vaults.filter(v => v.userId !== where.id);
             writeDB(db);
             return true;
+        }
+    },
+    vault: {
+        findMany: async ({ where }: any) => {
+            const db = readDB();
+            return db.vaults.filter(v => v.userId === where.userId);
+        },
+        findFirst: async ({ where }: any) => {
+            const db = readDB();
+            return db.vaults.find(v => v.userId === where.userId && (v.id === where.id || v.name === where.name)) || null;
+        },
+        findUnique: async ({ where }: any) => {
+            const db = readDB();
+            return db.vaults.find(v => v.id === where.id && v.userId === where.userId) || null;
+        },
+        create: async ({ data }: any) => {
+            const db = readDB();
+            const newVault = { id: crypto.randomUUID(), ...data, createdAt: new Date(), updatedAt: new Date() };
+            db.vaults.push(newVault);
+            writeDB(db);
+            return newVault;
         }
     },
     session: {
@@ -88,12 +117,17 @@ export const db = {
         }
     },
     accountEntry: {
+        count: async ({ where }: any) => {
+            const db = readDB();
+            return db.items.filter(i => {
+                return Object.entries(where).every(([key, value]) => i[key] === value);
+            }).length;
+        },
         findMany: async ({ where, orderBy, select }: any) => {
             const db = readDB();
-            // Simple filter by userId
-            let items = db.items.filter(i => i.userId === where.userId);
-            // Ignore orderBy/select for minimal implementation or implement manually if needed
-            // (For now, returning full objects is fine, frontend handles it)
+            let items = db.items.filter(i => {
+                return Object.entries(where).every(([key, value]) => i[key] === value);
+            });
             return items;
         },
         findFirst: async ({ where }: any) => {
@@ -105,7 +139,6 @@ export const db = {
             const newItem = {
                 id: crypto.randomUUID(),
                 ...data,
-                lastAccessedAt: new Date(),
                 createdAt: new Date(),
                 updatedAt: new Date()
             };
@@ -115,16 +148,38 @@ export const db = {
         },
         update: async ({ where, data }: any) => {
             const db = readDB();
-            const index = db.items.findIndex(i => i.id === where.id);
+            const index = db.items.findIndex(i => {
+                const matchId = i.id === where.id;
+                const matchUser = where.userId ? i.userId === where.userId : true;
+                return matchId && matchUser;
+            });
             if (index === -1) throw new Error("Item not found");
 
             db.items[index] = { ...db.items[index], ...data, updatedAt: new Date() };
             writeDB(db);
             return db.items[index];
         },
+        updateMany: async ({ where, data }: any) => {
+            const db = readDB();
+            let count = 0;
+            db.items = db.items.map(i => {
+                const match = Object.entries(where).every(([key, value]) => i[key] === value);
+                if (match) {
+                    count++;
+                    return { ...i, ...data, updatedAt: new Date() };
+                }
+                return i;
+            });
+            writeDB(db);
+            return { count };
+        },
         delete: async ({ where }: any) => {
             const db = readDB();
-            db.items = db.items.filter(i => i.id !== where.id);
+            db.items = db.items.filter(i => {
+                const matchId = i.id === where.id;
+                const matchUser = where.userId ? i.userId === where.userId : true;
+                return !(matchId && matchUser);
+            });
             writeDB(db);
             return true;
         }
@@ -137,7 +192,6 @@ export const db = {
                 createdAt: new Date().toISOString(),
                 ...payload.data
             };
-            db.auditLogs = db.auditLogs || [];
             db.auditLogs.push(newLog);
             writeDB(db);
             return newLog;

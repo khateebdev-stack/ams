@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { Shield, Loader2, CheckCircle2, AlertTriangle, X, Copy, Check } from 'lucide-react';
+import { showToast } from './ui/Toast';
 
 interface Props {
     isOpen: boolean;
@@ -31,6 +32,7 @@ export default function TwoFactorModal({ isOpen, onClose, onEnabled, username, t
     const handleCopy = () => {
         navigator.clipboard.writeText(secret);
         setCopied(true);
+        showToast('2FA Secret copied to clipboard.', 'info');
         setTimeout(() => setCopied(false), 2000);
     };
 
@@ -47,9 +49,11 @@ export default function TwoFactorModal({ isOpen, onClose, onEnabled, username, t
                 setSecret(data.secret);
             } else {
                 setError(data.error);
+                showToast(data.error || 'Failed to initialize 2FA setup.', 'error');
             }
         } catch (e) {
             setError('Failed to load 2FA setup');
+            showToast('Protocol failure: Could not load 2FA configuration.', 'error');
         } finally {
             setLoading(false);
         }
@@ -70,12 +74,15 @@ export default function TwoFactorModal({ isOpen, onClose, onEnabled, username, t
             });
             const data = await res.json();
             if (res.ok) {
+                showToast('Two-Factor Authentication successfully enabled.', 'success');
                 onEnabled();
             } else {
                 setError(data.error);
+                showToast(data.error || 'Verification protocol rejected.', 'error');
             }
         } catch (e) {
             setError('Verification failed');
+            showToast('Security protocol failure: Verification interrupted.', 'error');
         } finally {
             setVerifying(false);
         }
