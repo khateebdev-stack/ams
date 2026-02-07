@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { ShieldAlert, Loader2, Trash2, X, Lock, KeyRound, Cpu, Eye, EyeOff } from 'lucide-react';
 import { CryptoService } from '@/lib/crypto';
 import { EnvironmentService } from '@/lib/environment';
+import { showToast } from './ui/Toast';
 
 interface Props {
     isOpen: boolean;
@@ -57,12 +58,16 @@ export default function DeleteAccountModal({ isOpen, onClose, onDeleted, usernam
             const data = await res.json();
 
             if (res.ok) {
+                showToast('Identity purged from Cryptosphere. Farewell.', 'success');
                 onDeleted();
             } else {
                 setError(data.error || 'Failed to delete account');
+                showToast(data.error || 'Purge protocol rejected by server.', 'error');
             }
         } catch (e: any) {
-            setError(e.message || 'An error occurred during deletion');
+            const msg = e.message || 'An error occurred during deletion';
+            setError(msg);
+            showToast(`Purge failure: ${msg}`, 'error');
         } finally {
             setLoading(false);
         }
