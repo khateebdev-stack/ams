@@ -57,7 +57,7 @@ export async function POST(req: Request) {
 
     try {
         const body = await req.json();
-        const { encryptedData, iv, vaultId } = body;
+        const { encryptedData, iv, vaultId, blindIndex } = body;
 
         if (!encryptedData || !iv || !vaultId) {
             return NextResponse.json({ error: 'Missing required data' }, { status: 400 });
@@ -69,6 +69,7 @@ export async function POST(req: Request) {
                 vaultId,
                 encryptedData,
                 iv,
+                blindIndex
             },
         });
 
@@ -85,11 +86,11 @@ export async function PUT(req: Request) {
     try {
         const url = new URL(req.url);
         const id = url.pathname.split('/').pop();
-        const { encryptedData, iv } = await req.json();
+        const { encryptedData, iv, blindIndex } = await req.json();
 
         await prisma.accountEntry.update({
             where: { id, userId: user.id },
-            data: { encryptedData, iv }
+            data: { encryptedData, iv, blindIndex }
         });
 
         return NextResponse.json({ success: true });

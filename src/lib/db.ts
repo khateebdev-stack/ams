@@ -139,6 +139,7 @@ export const db = {
             const newItem = {
                 id: crypto.randomUUID(),
                 ...data,
+                blindIndex: data.blindIndex || null,
                 createdAt: new Date(),
                 updatedAt: new Date()
             };
@@ -156,6 +157,7 @@ export const db = {
             if (index === -1) throw new Error("Item not found");
 
             db.items[index] = { ...db.items[index], ...data, updatedAt: new Date() };
+            if (data.blindIndex !== undefined) db.items[index].blindIndex = data.blindIndex;
             writeDB(db);
             return db.items[index];
         },

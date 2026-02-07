@@ -42,6 +42,7 @@ export default function VaultDashboard({ session, onLogout, onOpenSettings }: Pr
     const [password, setPassword] = useState('');
     const [category, setCategory] = useState('General');
     const [notes, setNotes] = useState('');
+    const [tags, setTags] = useState('');
     const [showFormPassword, setShowFormPassword] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
     const [formError, setFormError] = useState<string | null>(null);
@@ -52,6 +53,18 @@ export default function VaultDashboard({ session, onLogout, onOpenSettings }: Pr
     const [policyAutoWipe, setPolicyAutoWipe] = useState(false);
 
     const strength = getPasswordStrength(password);
+
+    const filteredItems = useMemo(() => {
+        if (!searchQuery) return items;
+        const q = searchQuery.toLowerCase().trim();
+        return items.filter(item => {
+            const siteMatch = item.site?.toLowerCase().includes(q);
+            const tagMatch = item.tags?.toLowerCase().split(',').some((t: string) => t.trim().includes(q));
+            const userMatch = item.username?.toLowerCase().includes(q);
+            const categoryMatch = item.category?.toLowerCase().includes(q);
+            return siteMatch || tagMatch || userMatch || categoryMatch;
+        });
+    }, [items, searchQuery]);
 
     useEffect(() => {
         fetchVaults();
@@ -229,6 +242,7 @@ export default function VaultDashboard({ session, onLogout, onOpenSettings }: Pr
                 password,
                 category,
                 notes,
+                tags, // Included in the encrypted bubble
                 policy: {
                     requireAuth: policyRequireAuth,
                     timeLock: policyTimeLock ? { start: policyTimeStart, end: policyTimeEnd } : null,
@@ -238,7 +252,10 @@ export default function VaultDashboard({ session, onLogout, onOpenSettings }: Pr
                 history: historyEntry ? [historyEntry, ...previousHistory].slice(0, 10) : previousHistory // Keep last 10 versions
             };
 
-            const { encryptedData, iv } = await CryptoService.encryptData(JSON.stringify(bundle), subKey);
+            const [{ encryptedData, iv }, blindIndex] = await Promise.all([
+                CryptoService.encryptData(JSON.stringify(bundle), subKey),
+                CryptoService.generateBlindIndex(site, session.vaultKey) // Use vaultKey as the KDF root
+            ]);
 
             const url = editingItem ? `/api/vault/${editingItem.id}` : '/api/vault';
             const res = await fetch(url, {
@@ -250,7 +267,8 @@ export default function VaultDashboard({ session, onLogout, onOpenSettings }: Pr
                 body: JSON.stringify({
                     encryptedData,
                     iv,
-                    vaultId: targetVaultId
+                    vaultId: targetVaultId,
+                    blindIndex // Send the searchable (but secured) index
                 }),
             });
 
@@ -346,6 +364,7 @@ export default function VaultDashboard({ session, onLogout, onOpenSettings }: Pr
         setPassword('');
         setCategory('General');
         setNotes('');
+        setTags('');
         setShowFormPassword(false);
         setPolicyRequireAuth(false);
         setPolicyTimeLock(false);
@@ -359,6 +378,7 @@ export default function VaultDashboard({ session, onLogout, onOpenSettings }: Pr
         setPassword(item.password);
         setCategory(item.category || 'General');
         setNotes(item.notes || '');
+        setTags(item.tags || '');
         setPolicyRequireAuth(item.policy?.requireAuth || false);
         setPolicyTimeLock(!!item.policy?.timeLock);
         setPolicyTimeStart(item.policy?.timeLock?.start || '09:00');
@@ -422,15 +442,6 @@ export default function VaultDashboard({ session, onLogout, onOpenSettings }: Pr
         visible: { opacity: 1, y: 0 }
     };
 
-    const filteredItems = useMemo(() => {
-        if (!searchQuery) return items;
-        const query = searchQuery.toLowerCase();
-        return items.filter(item =>
-            (item.site || '').toLowerCase().includes(query) ||
-            (item.username || '').toLowerCase().includes(query) ||
-            (item.category || '').toLowerCase().includes(query)
-        );
-    }, [items, searchQuery]);
 
     const activeVault = (vaults || []).find(v => v.id === activeVaultId);
 
@@ -722,6 +733,12 @@ export default function VaultDashboard({ session, onLogout, onOpenSettings }: Pr
                                                 <span className="text-[7px] font-black text-emerald-500 uppercase tracking-tighter">WIPE</span>
                                             </div>
                                         )}
+
+                                        {item.tags && item.tags.split(',').map((tag: string, idx: number) => (
+                                            <span key={idx} className="px-2 py-0.5 bg-blue-500/5 border border-blue-500/10 rounded-md text-[7px] font-black text-blue-400 uppercase tracking-widest whitespace-nowrap">
+                                                {tag.trim()}
+                                            </span>
+                                        ))}
                                     </div>
 
                                     <div className="flex gap-2">
@@ -894,6 +911,14 @@ export default function VaultDashboard({ session, onLogout, onOpenSettings }: Pr
                                     <div>
                                         <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1.5 ml-1">Security Notes (Optional)</label>
                                         <textarea value={notes} onChange={(e) => setNotes(e.target.value)} className="w-full p-3 bg-black/40 border border-slate-800 rounded-xl focus:border-blue-500/50 outline-none text-white text-xs font-bold transition-all h-16 resize-none" placeholder="Contextual details..." />
+                                    </div>
+
+                                    <div>
+                                        <div className="flex justify-between items-center mb-1.5 px-1">
+                                            <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest">Cryptographic Tags</label>
+                                            <span className="text-[8px] font-bold text-slate-600 uppercase tracking-tighter">Comma Separated</span>
+                                        </div>
+                                        <input value={tags} onChange={(e) => setTags(e.target.value)} className="w-full p-3 bg-black/40 border border-slate-800 rounded-xl focus:border-blue-500/50 outline-none text-white text-xs font-bold transition-all" placeholder="Work, Dev, Admin" />
                                     </div>
 
                                     <div className="space-y-3 p-4 bg-blue-500/5 border border-blue-500/10 rounded-2xl">
