@@ -160,4 +160,25 @@ export class CryptoService {
     static async deriveRecoveryKey(recoveryCode: string, salt: string): Promise<Uint8Array> {
         return this.deriveMasterKey(recoveryCode, salt);
     }
+
+    /**
+     * Generates a Blind Index for a specific input (e.g., site name).
+     * This is a one-way, keyed hash that allows server-side search without plaintext exposure.
+     * Normalizes input (lowercase/trim) to ensure search stability.
+     */
+    static async generateBlindIndex(input: string, key: Uint8Array): Promise<string> {
+        await this.init();
+        const normalized = input.trim().toLowerCase();
+
+        // We derive a dedicated Indexing Key from the masterKey to avoid key reuse issues.
+        // Sodium's generichash can act as a KDF here.
+        const indexingKey = sodium.crypto_generichash(
+            sodium.crypto_generichash_BYTES,
+            "axiom_blind_index_v1",
+            key
+        );
+
+        const index = sodium.crypto_generichash(32, normalized, indexingKey);
+        return sodium.to_hex(index);
+    }
 }
