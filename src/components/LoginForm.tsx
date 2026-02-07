@@ -1,9 +1,12 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { CryptoService } from '@/lib/crypto';
 import { EnvironmentService } from '@/lib/environment';
 import { Loader2, LockOpen, LogIn, Shield, ArrowLeft, Cpu, Eye, EyeOff } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import CyberButton from './ui/CyberButton';
+import { showToast } from './ui/Toast';
 
 interface Props {
     onSuccess: (session: any) => void;
@@ -30,7 +33,7 @@ export default function LoginForm({ onSuccess, onSwitchToRegister, onOpenRecover
             await CryptoService.init();
 
             // 1. Get Salt for User
-            const saltRes = await fetch(`/api/user/salt?username=${username}`);
+            const saltRes = await fetch(`/api/user/salt?username=${encodeURIComponent(username)}`);
             const saltData = await saltRes.json();
             if (!saltRes.ok || !saltData.salt) throw new Error('User not found or invalid');
             const salt = saltData.salt;
@@ -72,7 +75,9 @@ export default function LoginForm({ onSuccess, onSwitchToRegister, onOpenRecover
 
         } catch (err: any) {
             console.error(err);
-            setError("Login failed. Check credentials.");
+            const msg = err.message || "Authorization failed. Check master sequence.";
+            setError(msg);
+            showToast(msg, 'error');
         } finally {
             setLoading(false);
         }
@@ -105,128 +110,165 @@ export default function LoginForm({ onSuccess, onSwitchToRegister, onOpenRecover
                 salt: loginContext.salt,
                 authHash: loginContext.authHash,
             });
+            showToast('Two-Factor Verification successful.', 'success');
         } catch (err: any) {
-            setError(err.message || "Invalid 2FA code");
+            const msg = err.message || "Invalid 2FA code";
+            setError(msg);
+            showToast(msg, 'error');
         } finally {
             setLoading(false);
         }
     };
 
-    if (show2FA) {
-        return (
-            <form onSubmit={handle2FAVerify} className="space-y-6 animate-in zoom-in duration-300">
-                <div className="text-center mb-6">
-                    <button type="button" onClick={() => setShow2FA(false)} className="absolute left-0 top-0 p-2 text-slate-500 hover:text-white transition-colors">
-                        <ArrowLeft className="w-5 h-5" />
-                    </button>
-                    <div className="w-16 h-16 bg-blue-500/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                        <Shield className="w-8 h-8 text-blue-500" />
-                    </div>
-                    <h2 className="text-2xl font-bold text-white">2FA Verification</h2>
-                    <p className="text-slate-400 text-sm">Enter the code from your authenticator app.</p>
-                </div>
+    const containerVariants = {
+        hidden: { opacity: 0, y: 10 },
+        visible: {
+            opacity: 1,
+            y: 0,
+            transition: { duration: 0.4, staggerChildren: 0.1 }
+        },
+        exit: { opacity: 0, scale: 0.95, transition: { duration: 0.2 } }
+    };
 
-                {error && (
-                    <div className="p-3 bg-red-900/30 border border-red-500/50 text-red-200 text-sm rounded">
-                        {error}
-                    </div>
-                )}
-
-                <div>
-                    <input
-                        type="text"
-                        maxLength={6}
-                        value={twoFactorCode}
-                        onChange={(e) => setTwoFactorCode(e.target.value.replace(/\D/g, ''))}
-                        className="w-full p-4 bg-slate-900 border border-slate-700 rounded-xl text-center text-3xl tracking-[0.5em] focus:border-blue-500 outline-none text-white font-mono"
-                        placeholder="000000"
-                        autoFocus
-                        required
-                    />
-                </div>
-
-                <button
-                    type="submit"
-                    disabled={loading || twoFactorCode.length < 6}
-                    className="w-full py-4 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white font-bold rounded-xl flex justify-center items-center gap-2 shadow-lg shadow-blue-900/20 transition-all font-bold"
-                >
-                    {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Shield className="w-5 h-5" />}
-                    {loading ? 'Verifying...' : 'Verify & Unlock'}
-                </button>
-            </form>
-        );
-    }
+    const itemVariants = {
+        hidden: { opacity: 0, x: -5 },
+        visible: { opacity: 1, x: 0 }
+    };
 
     return (
-        <form onSubmit={handleLogin} className="space-y-4 animate-in fade-in slide-in-from-bottom-4">
-            <div className="text-center mb-6">
-                <h2 className="text-2xl font-bold text-blue-400 italic flex justify-center items-center gap-2 tracking-tight">
-                    <LockOpen className="w-6 h-6 not-italic" /> UNLOCK AXIOM
-                </h2>
-                <div className="inline-flex items-center gap-1.5 px-2 py-1 bg-blue-500/10 border border-blue-500/20 rounded-full mt-3">
-                    <Cpu className="w-3 h-3 text-blue-400" />
-                    <span className="text-[10px] font-bold text-blue-400 uppercase tracking-widest">Secure Context Active</span>
-                </div>
-            </div>
+        <AnimatePresence mode="wait">
+            {show2FA ? (
+                <motion.form
+                    key="2fa"
+                    variants={containerVariants}
+                    initial="hidden"
+                    animate="visible"
+                    exit="exit"
+                    onSubmit={handle2FAVerify}
+                    className="space-y-5"
+                >
+                    <div className="text-center mb-4 relative">
+                        <button type="button" onClick={() => setShow2FA(false)} className="absolute left-0 top-0 p-2 text-slate-500 hover:text-white transition-colors">
+                            <ArrowLeft className="w-5 h-5" />
+                        </button>
+                        <div className="w-14 h-14 bg-blue-500/10 rounded-2xl flex items-center justify-center mx-auto mb-3 border border-blue-500/20">
+                            <Shield className="w-7 h-7 text-blue-500" />
+                        </div>
+                        <h2 className="text-xl font-black text-white tracking-widest uppercase">Verify Identity</h2>
+                        <p className="text-slate-500 text-[10px] font-black uppercase tracking-tighter">Enter Auth-Domain Code</p>
+                    </div>
 
-            {error && (
-                <div className="p-3 bg-red-900/30 border border-red-500/50 text-red-200 text-sm rounded">
-                    {error}
-                </div>
+                    {error && (
+                        <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="p-3 bg-red-500/10 border border-red-500/20 text-red-500 text-xs font-bold rounded-xl text-center">
+                            {error}
+                        </motion.div>
+                    )}
+
+                    <div className="space-y-4">
+                        <input
+                            type="text"
+                            maxLength={6}
+                            value={twoFactorCode}
+                            onChange={(e) => setTwoFactorCode(e.target.value.replace(/\D/g, ''))}
+                            className="w-full p-5 bg-black/40 border border-slate-800 rounded-2xl text-center text-4xl tracking-[0.5em] focus:border-blue-500 outline-none text-white font-mono shadow-inner font-black"
+                            placeholder="000000"
+                            autoFocus
+                            required
+                        />
+
+                        <CyberButton
+                            type="submit"
+                            isLoading={loading}
+                            disabled={twoFactorCode.length < 6}
+                            className="w-full"
+                        >
+                            <Shield className="w-4 h-4" />
+                            UNLOCK SECURE SESSION
+                        </CyberButton>
+                    </div>
+                </motion.form>
+            ) : (
+                <motion.form
+                    key="login"
+                    variants={containerVariants}
+                    initial="hidden"
+                    animate="visible"
+                    exit="exit"
+                    onSubmit={handleLogin}
+                    className="space-y-4"
+                >
+                    <div className="text-center mb-4">
+                        <h2 className="text-xl font-black text-white flex justify-center items-center gap-2 tracking-widest uppercase">
+                            <LockOpen className="w-5 h-5 text-blue-500" /> ACCESS PORTAL
+                        </h2>
+                        <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-blue-500/5 border border-blue-500/10 rounded-full mt-3">
+                            <div className="w-1.5 h-1.5 bg-blue-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(59,130,246,0.5)]" />
+                            <span className="text-[9px] font-black text-blue-500 uppercase tracking-[0.2em]">Environment-Bound Protection</span>
+                        </div>
+                    </div>
+
+                    {error && (
+                        <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="p-3 bg-red-500/10 border border-red-500/20 text-red-500 text-xs font-bold rounded-xl text-center">
+                            {error}
+                        </motion.div>
+                    )}
+
+                    <motion.div variants={itemVariants}>
+                        <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1.5 ml-1">Identity Tag</label>
+                        <input
+                            type="text"
+                            value={username}
+                            onChange={(e) => setUsername(e.target.value)}
+                            className="w-full p-4 bg-black/40 border border-slate-800 rounded-2xl focus:border-blue-500/50 outline-none text-white transition-all placeholder:text-slate-800 font-bold"
+                            placeholder="Username"
+                            autoComplete="username"
+                            required
+                        />
+                    </motion.div>
+
+                    <motion.div variants={itemVariants}>
+                        <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1.5 ml-1">Master Sequence</label>
+                        <div className="relative group">
+                            <input
+                                type={showPassword ? "text" : "password"}
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
+                                className="w-full p-4 pr-12 bg-black/40 border border-slate-800 rounded-2xl focus:border-blue-500/50 outline-none text-white transition-all placeholder:text-slate-800 font-mono"
+                                placeholder="••••••••••••"
+                                autoComplete="current-password"
+                                required
+                            />
+                            <button
+                                type="button"
+                                onClick={() => setShowPassword(!showPassword)}
+                                className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-600 hover:text-blue-500 transition-colors"
+                            >
+                                {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                            </button>
+                        </div>
+                    </motion.div>
+
+                    <motion.div variants={itemVariants} className="pt-2">
+                        <CyberButton
+                            type="submit"
+                            isLoading={loading}
+                            className="w-full"
+                        >
+                            <LogIn className="w-4 h-4" />
+                            AUTHORIZE ACCESS
+                        </CyberButton>
+                    </motion.div>
+
+                    <motion.div variants={itemVariants} className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest pt-2">
+                        <button type="button" onClick={onSwitchToRegister} className="text-slate-500 hover:text-blue-500 transition-all">
+                            Initialize New Audit
+                        </button>
+                        <button type="button" onClick={onOpenRecovery} className="text-slate-600 hover:text-slate-400">
+                            Lost Key?
+                        </button>
+                    </motion.div>
+                </motion.form>
             )}
-
-            <div className="mb-4">
-                <label className="block text-xs uppercase text-slate-500 font-bold mb-1">Username</label>
-                <input
-                    type="text"
-                    value={username}
-                    onChange={(e) => setUsername(e.target.value)}
-                    className="w-full p-3 bg-slate-900 border border-slate-700 rounded focus:border-emerald-500 outline-none text-slate-200 transition-colors"
-                    placeholder="Your username"
-                    autoComplete="username"
-                    required
-                />
-            </div>
-
-            <div className="mb-4">
-                <label className="block text-xs uppercase text-slate-500 font-bold mb-1">Master Password</label>
-                <div className="relative group">
-                    <input
-                        type={showPassword ? "text" : "password"}
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        className="w-full p-3 pr-10 bg-slate-900 border border-slate-700 rounded focus:border-blue-500 outline-none text-slate-200 transition-colors"
-                        placeholder="••••••••••••"
-                        autoComplete="current-password"
-                        required
-                    />
-                    <button
-                        type="button"
-                        onClick={() => setShowPassword(!showPassword)}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-blue-400 transition-colors"
-                    >
-                        {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                    </button>
-                </div>
-            </div>
-
-            <button
-                type="submit"
-                disabled={loading}
-                className="w-full py-4 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white font-bold rounded-xl flex justify-center items-center gap-2 transition-all shadow-lg shadow-blue-900/20"
-            >
-                {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <LogIn className="w-4 h-4" />}
-                {loading ? 'Decrypting Access...' : 'Authenticate'}
-            </button>
-
-            <div className="flex justify-between items-center text-sm pt-4">
-                <button type="button" onClick={onSwitchToRegister} className="text-slate-400 hover:text-blue-400 underline decoration-slate-600 hover:decoration-blue-500 transition-all">
-                    Initialize Access
-                </button>
-                <button type="button" onClick={onOpenRecovery} className="text-slate-500 hover:text-slate-400">
-                    Forgot Password?
-                </button>
-            </div>
-        </form>
+        </AnimatePresence>
     );
 }

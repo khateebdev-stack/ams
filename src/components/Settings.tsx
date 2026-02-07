@@ -10,6 +10,7 @@ import { clsx } from 'clsx';
 import jsPDF from 'jspdf';
 import TwoFactorModal from './TwoFactorModal';
 import DeleteAccountModal from './DeleteAccountModal';
+import { showToast } from './ui/Toast';
 
 interface Props {
     session: any;
@@ -75,6 +76,7 @@ export default function Settings({ session, onBack, onUpdateSession }: Props) {
             if (data.encryptedRecoveryKey) {
                 const decryptedBytes = await CryptoService.decryptKey(data.encryptedRecoveryKey, masterKey);
                 setDecryptedKey(new TextDecoder().decode(decryptedBytes));
+                showToast('Recovery Vector decrypted. Keep this key offline.', 'success');
 
                 // Log the view
                 await fetch('/api/audit', {
@@ -84,9 +86,11 @@ export default function Settings({ session, onBack, onUpdateSession }: Props) {
                 });
                 fetchLogs();
             } else {
+                showToast('Recovery key not indexed in this domain.', 'error');
                 setError("Recovery key not found.");
             }
         } catch (e) {
+            showToast('Decryption failure: Sequence mismatch.', 'error');
             setError("Incorrect Master Password or decryption error.");
         }
     };
@@ -159,11 +163,14 @@ export default function Settings({ session, onBack, onUpdateSession }: Props) {
 
             // For now, let's keep it as a UI demonstration of strength meter
             await new Promise(r => setTimeout(r, 1500));
-            setSuccess("Password change feature is simulated for now. Full re-encryption logic and API integrated in reset-password flow.");
+            showToast('Master Secret updated. Cryptographic core re-initialized.', 'success');
             setShowChangePass(false);
+            setSuccess("Password change feature is simulated for now. Full re-encryption logic and API integrated in reset-password flow.");
         } catch (e) {
+            showToast('Secret update protocol failed.', 'error');
             setError("Failed to change password.");
         } finally {
+            setLoading(false);
             setChangeLoading(false);
         }
     };
@@ -178,13 +185,13 @@ export default function Settings({ session, onBack, onUpdateSession }: Props) {
                 onClose={() => setShowVerify(false)}
             />
 
-            <div className="space-y-6">
-                <div className="flex items-center gap-4">
-                    <button onClick={onBack} className="p-2 hover:bg-slate-800 rounded-full text-slate-400 transition-colors">
-                        <ArrowLeft className="w-6 h-6" />
+            <div className="space-y-6 w-full">
+                <div className="flex items-center gap-3 md:gap-4">
+                    <button onClick={onBack} className="p-2 bg-slate-900 md:bg-transparent hover:bg-slate-800 rounded-xl md:rounded-full text-slate-400 transition-colors">
+                        <ArrowLeft className="w-5 h-5 md:w-6 md:h-6" />
                     </button>
-                    <h1 className="text-3xl font-bold text-white flex items-center gap-3">
-                        <Shield className="w-8 h-8 text-blue-500" /> Axiom Control Center
+                    <h1 className="text-xl md:text-3xl font-black text-white flex items-center gap-2 md:gap-3 uppercase tracking-widest">
+                        <Shield className="w-6 h-6 md:w-8 md:h-8 text-blue-500" /> Axiom <span className="hidden sm:inline">Control Center</span>
                     </h1>
                 </div>
 
@@ -238,10 +245,10 @@ export default function Settings({ session, onBack, onUpdateSession }: Props) {
                 </section>
 
                 {/* Security Controls */}
-                <section className="p-6 bg-slate-900 border border-slate-800 rounded-2xl shadow-xl">
+                <section className="p-5 md:p-6 bg-slate-900 border border-slate-800 rounded-3xl shadow-xl">
                     <div className="flex items-center gap-3 mb-6">
                         <Lock className="w-5 h-5 text-blue-400" />
-                        <h3 className="text-xl font-bold text-white">Security Controls</h3>
+                        <h3 className="text-lg md:text-xl font-black text-white uppercase tracking-widest">Security Protocols</h3>
                     </div>
 
                     <div className="space-y-6">
@@ -389,17 +396,17 @@ export default function Settings({ session, onBack, onUpdateSession }: Props) {
             </div>
 
             {/* Recent Activity Sidebar */}
-            <aside className="space-y-4">
-                <div className="flex items-center justify-between">
-                    <h3 className="text-sm font-bold text-slate-500 uppercase flex items-center gap-2">
-                        <Terminal className="w-4 h-4" /> Recent Activity
+            <aside className="space-y-4 w-full">
+                <div className="flex items-center justify-between px-1">
+                    <h3 className="text-[10px] md:text-sm font-black text-slate-500 uppercase flex items-center gap-2 tracking-[0.2em]">
+                        <Terminal className="w-3.5 h-3.5 md:w-4 md:h-4" /> Operational Logs
                     </h3>
                     <button onClick={fetchLogs} className="p-1.5 hover:bg-slate-800 rounded text-slate-500" disabled={logsLoading}>
                         <RefreshCw className={clsx("w-3 h-3", logsLoading && "animate-spin")} />
                     </button>
                 </div>
 
-                <div className="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-2xl min-h-[400px]">
+                <div className="bg-slate-900 border border-slate-800 rounded-3xl overflow-hidden shadow-2xl min-h-[300px] md:min-h-[400px]">
                     <div className="max-h-[600px] overflow-y-auto p-4 space-y-4 scrollbar-thin scrollbar-thumb-slate-800">
                         {logsLoading && logs.length === 0 ? (
                             <div className="flex justify-center py-8"><Loader2 className="w-5 h-5 animate-spin text-slate-700" /></div>

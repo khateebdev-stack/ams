@@ -8,6 +8,7 @@ import Settings from '@/components/Settings';
 import Recovery from '@/components/Recovery';
 import { Shield } from 'lucide-react';
 import { useAutoLock } from '@/hooks/useAutoLock';
+import { clsx } from 'clsx';
 
 type ViewState = 'login' | 'register' | 'dashboard' | 'settings' | 'recovery';
 
@@ -35,7 +36,10 @@ export default function Home() {
   };
 
   return (
-    <main className="flex min-h-screen flex-col items-center p-4 md:p-24 bg-slate-950 text-slate-200">
+    <main className={clsx(
+      "flex min-h-screen flex-col items-center bg-slate-950 text-slate-200",
+      view === 'dashboard' ? "p-0 md:p-8" : "p-4 md:p-24"
+    )}>
 
       {/* Header only when not in dashboard to avoid clutter */}
       {view !== 'dashboard' && (
@@ -51,7 +55,7 @@ export default function Home() {
       )}
 
       {view === 'login' && (
-        <div className="w-full max-w-md bg-slate-900/50 p-8 rounded-2xl border border-slate-800 shadow-xl backdrop-blur-sm">
+        <div className="w-full max-w-md bg-slate-900/50 p-6 sm:p-10 rounded-3xl border border-white/5 shadow-2xl backdrop-blur-xl animate-in fade-in zoom-in-95 duration-500">
           <LoginForm
             onSuccess={handleLoginSuccess}
             onSwitchToRegister={() => setView('register')}
@@ -61,7 +65,7 @@ export default function Home() {
       )}
 
       {view === 'register' && (
-        <div className="w-full max-w-md bg-slate-900/50 p-8 rounded-2xl border border-slate-800 shadow-xl backdrop-blur-sm">
+        <div className="w-full max-w-md bg-slate-900/50 p-6 sm:p-10 rounded-3xl border border-white/5 shadow-2xl backdrop-blur-xl animate-in fade-in zoom-in-95 duration-500">
           <RegisterForm
             onSuccess={() => setView('login')}
             onSwitchToLogin={() => setView('login')}
@@ -86,7 +90,7 @@ export default function Home() {
       )}
 
       {view === 'recovery' && (
-        <div className="w-full max-w-md bg-slate-900/50 p-8 rounded-2xl border border-slate-800 shadow-xl backdrop-blur-sm">
+        <div className="w-full max-w-md bg-slate-900/50 p-6 sm:p-10 rounded-3xl border border-white/5 shadow-2xl backdrop-blur-xl animate-in fade-in zoom-in-95 duration-500">
           <Recovery
             onSuccess={() => setView('login')}
             onBack={() => setView('login')}
