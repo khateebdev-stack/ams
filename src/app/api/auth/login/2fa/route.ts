@@ -55,12 +55,41 @@ export async function POST(req: NextRequest) {
             },
         });
 
+        // 5. Handle Device Trust Request
+        const { trustDevice, fingerprint } = await req.json().catch(() => ({}));
+        let issuedTrustToken = null;
+
+        if (trustDevice && fingerprint) {
+            const trustTokenValue = randomUUID();
+            const trustExpiry = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000); // 30 days
+
+            // Delete old trust for this device if it exists
+            await db.trustToken.delete({
+                where: { userId: user.id, fingerprintHash: fingerprint }
+            }).catch(() => { });
+
+            issuedTrustToken = await db.trustToken.create({
+                data: {
+                    userId: user.id,
+                    fingerprintHash: fingerprint,
+                    token: trustTokenValue,
+                    expiresAt: trustExpiry,
+                    deviceName: 'Browser Instance' // Could be improved in UI
+                }
+            });
+        }
+
         return NextResponse.json({
             success: true,
             sessionToken,
             twoFactorEnabled: user.twoFactorEnabled,
             encryptedVaultKey: user.encryptedVaultKey,
-            encryptedRecoveryKey: user.encryptedRecoveryKey
+            encryptedRecoveryKey: user.encryptedRecoveryKey,
+            trustToken: issuedTrustToken ? {
+                token: issuedTrustToken.token,
+                expiresAt: issuedTrustToken.expiresAt,
+                fingerprintHash: issuedTrustToken.fingerprintHash
+            } : null
         });
 
     } catch (e: any) {

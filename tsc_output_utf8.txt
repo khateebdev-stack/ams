@@ -1,0 +1,11 @@
+﻿src/components/ui/CyberButton.tsx(31,10): error TS2322: Type '{ children: (string | number | bigint | boolean | Element | Iterable<ReactNode> | Promise<AwaitedReactNode> | null | undefined)[]; ... 289 more ...; className: string; }' is not assignable to type 'Omit<HTMLMotionProps<"button">, "ref">'.
+  Types of property 'onDrag' are incompatible.
+    Type 'DragEventHandler<HTMLButtonElement> | undefined' is not assignable to type '((event: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => void) | undefined'.
+      Type 'DragEventHandler<HTMLButtonElement>' is not assignable to type '(event: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => void'.
+        Types of parameters 'event' and 'event' are incompatible.
+          Type 'MouseEvent | TouchEvent | PointerEvent' is not assignable to type 'DragEvent<HTMLButtonElement>'.
+            Type 'MouseEvent' is missing the following properties from type 'DragEvent<HTMLButtonElement>': dataTransfer, nativeEvent, isDefaultPrevented, isPropagationStopped, persist
+src/components/VaultDashboard.tsx(361,42): error TS2322: Type '{ children: Element; actionLabel: string; onVerified: () => void; session: any; }' is not assignable to type 'IntrinsicAttributes & Props'.
+  Property 'children' does not exist on type 'IntrinsicAttributes & Props'.
+src/components/VaultDashboard.tsx(371,42): error TS2322: Type '{ children: Element; actionLabel: string; onVerified: () => void; session: any; }' is not assignable to type 'IntrinsicAttributes & Props'.
+  Property 'children' does not exist on type 'IntrinsicAttributes & Props'.

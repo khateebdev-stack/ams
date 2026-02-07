@@ -18,6 +18,7 @@ interface DB {
     items: any[];
     vaults: any[]; // New
     auditLogs: any[];
+    trustTokens: any[];
 }
 
 function readDB(): DB {
@@ -29,10 +30,11 @@ function readDB(): DB {
             sessions: parsed.sessions || [],
             items: parsed.items || [],
             vaults: parsed.vaults || [],
-            auditLogs: parsed.auditLogs || []
+            auditLogs: parsed.auditLogs || [],
+            trustTokens: parsed.trustTokens || []
         };
     } catch (e) {
-        return { users: [], sessions: [], items: [], vaults: [], auditLogs: [] };
+        return { users: [], sessions: [], items: [], vaults: [], auditLogs: [], trustTokens: [] };
     }
 }
 
@@ -219,6 +221,35 @@ export const db = {
                 logs = logs.slice(0, payload.take);
             }
             return logs;
+        }
+    },
+    trustToken: {
+        findUnique: async ({ where }: any) => {
+            const db = readDB();
+            return db.trustTokens.find(t => t.id === where.id || (t.userId === where.userId && t.fingerprintHash === where.fingerprintHash)) || null;
+        },
+        findMany: async ({ where }: any) => {
+            const db = readDB();
+            return db.trustTokens.filter(t => t.userId === where.userId);
+        },
+        create: async ({ data }: any) => {
+            const db = readDB();
+            const newToken = { id: crypto.randomUUID(), ...data, createdAt: new Date() };
+            db.trustTokens.push(newToken);
+            writeDB(db);
+            return newToken;
+        },
+        delete: async ({ where }: any) => {
+            const db = readDB();
+            if (where.id) {
+                db.trustTokens = db.trustTokens.filter(t => t.id !== where.id);
+            } else if (where.userId && where.fingerprintHash) {
+                db.trustTokens = db.trustTokens.filter(t => !(t.userId === where.userId && t.fingerprintHash === where.fingerprintHash));
+            } else if (where.userId) {
+                db.trustTokens = db.trustTokens.filter(t => t.userId !== where.userId);
+            }
+            writeDB(db);
+            return true;
         }
     }
 };

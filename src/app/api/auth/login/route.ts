@@ -27,14 +27,36 @@ export async function POST(req: Request) {
             return NextResponse.json({ error: 'Invalid credentials' }, { status: 401 });
         }
 
-        // 2b. Check 2FA
+        // 2b. Check 2FA & Device Trust
         if (user.twoFactorEnabled) {
-            await prisma.auditLog.create({ data: { username, event: 'LOGIN_2FA_PENDING' } });
-            return NextResponse.json({
-                success: true,
-                twoFactorRequired: true,
-                username: user.username
-            });
+            const { trustToken, fingerprint } = body;
+            let isTrusted = false;
+
+            if (trustToken && fingerprint) {
+                const storedTrust = await prisma.trustToken.findUnique({
+                    where: { userId: user.id, fingerprintHash: fingerprint }
+                });
+
+                if (storedTrust && storedTrust.token === trustToken) {
+                    const expiry = new Date(storedTrust.expiresAt);
+                    if (expiry > new Date()) {
+                        isTrusted = true;
+                        await prisma.auditLog.create({ data: { username, event: 'LOGIN_TRUSTED_BYPASS' } });
+                    } else {
+                        // Cleanup expired token
+                        await prisma.trustToken.delete({ where: { id: storedTrust.id } });
+                    }
+                }
+            }
+
+            if (!isTrusted) {
+                await prisma.auditLog.create({ data: { username, event: 'LOGIN_2FA_PENDING' } });
+                return NextResponse.json({
+                    success: true,
+                    twoFactorRequired: true,
+                    username: user.username
+                });
+            }
         }
 
         // Log success

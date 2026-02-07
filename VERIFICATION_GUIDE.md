@@ -43,6 +43,18 @@ This guide empowers you to verify Axiom's security claims yourself. You don't ha
 4.  Enter your username, the **Recovery Key**, and a **New Password**.
 5.  **Result**: If the key is correct, you will be able to log in with the new password and see all your old data intact. Axiom re-wraps your vault keys with the new password during this flow.
 
+## 6. Verify Device Trust & 2FA Bypass
+**Objective**: Proof that Axiom balances extreme security with user convenience using hardware-bound tokens.
+
+1.  **Enable 2FA** in Settings.
+2.  **Log out** and log back in.
+3.  On the 2FA screen, enable **"Trust this device"** before entering your code.
+4.  **Result 1**: After logging in, go to **Settings -> Trusted Environments**. You will see your device listed with a unique fingerprint and a 30-day expiry.
+5.  **Log out and log in again**.
+6.  **Result 2**: The 2FA screen is **bypassed**. You are granted access based on the secure Trust Token bound to your machine.
+7.  **Revoke Trust** in Settings and log in once more.
+8.  **Result 3**: 2FA is **required again**, proving your manual revocation was enforced.
+
 ---
 
 ## 🛠️ Advanced Tools for Pros

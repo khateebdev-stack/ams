@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Shield, Download, Lock, ArrowLeft, Terminal, AlertTriangle, Eye, EyeOff, RefreshCw, KeyRound, CheckCircle2, Wand2, Loader2, Trash2 } from 'lucide-react';
+import { Shield, Download, Lock, ArrowLeft, Terminal, AlertTriangle, Eye, EyeOff, RefreshCw, KeyRound, CheckCircle2, Wand2, Loader2, Trash2, ShieldCheck, Cpu } from 'lucide-react';
 import VerifyModal from './VerifyModal';
 import { CryptoService } from '@/lib/crypto';
 import { getPasswordStrength } from '@/lib/strength';
@@ -23,6 +23,15 @@ interface AuditLog {
     event: string;
     createdAt: string;
     metadata?: any;
+}
+
+interface TrustToken {
+    id: string;
+    deviceName: string;
+    fingerprintHash: string;
+    expiresAt: string;
+    createdAt: string;
+    isCurrent: boolean;
 }
 
 export default function Settings({ session, onBack, onUpdateSession }: Props) {
@@ -47,10 +56,15 @@ export default function Settings({ session, onBack, onUpdateSession }: Props) {
     const [showConfirmPass, setShowConfirmPass] = useState(false);
     const [changeLoading, setChangeLoading] = useState(false);
 
+    // Trust Management State
+    const [trustedDevices, setTrustedDevices] = useState<TrustToken[]>([]);
+    const [trustLoading, setTrustLoading] = useState(true);
+
     const strength = getPasswordStrength(newMasterPass);
 
     useEffect(() => {
         fetchLogs();
+        fetchTrustedDevices();
     }, []);
 
     const fetchLogs = async () => {
@@ -63,6 +77,47 @@ export default function Settings({ session, onBack, onUpdateSession }: Props) {
             console.error("Failed to fetch logs", e);
         } finally {
             setLogsLoading(false);
+        }
+    };
+
+    const fetchTrustedDevices = async () => {
+        setTrustLoading(true);
+        try {
+            const fingerprint = await (await import('@/lib/environment')).EnvironmentService.getFingerprint();
+            const res = await fetch('/api/auth/trust', {
+                headers: {
+                    'Authorization': `Bearer ${session.token}`,
+                    'x-device-fingerprint': fingerprint
+                }
+            });
+            const data = await res.json();
+            if (res.ok) setTrustedDevices(data.trustTokens || []);
+        } catch (e) {
+            console.error("Failed to fetch trusted devices", e);
+        } finally {
+            setTrustLoading(false);
+        }
+    };
+
+    const handleRevokeTrust = async (tokenId: string) => {
+        try {
+            const res = await fetch(`/api/auth/trust?id=${tokenId}`, {
+                method: 'DELETE',
+                headers: { 'Authorization': `Bearer ${session.token}` }
+            });
+            if (res.ok) {
+                showToast('Device trust association revoked.', 'success');
+                fetchTrustedDevices();
+                fetchLogs();
+
+                // If the revoked device is the current one, the user will be asked for 2FA next time
+                const token = (await import('@/lib/trust')).TrustService.getLocalTrustToken();
+                if (token && token.id === tokenId) {
+                    (await import('@/lib/trust')).TrustService.revokeLocalTrust();
+                }
+            }
+        } catch (e) {
+            showToast('Failed to revoke trust.', 'error');
         }
     };
 
@@ -375,6 +430,61 @@ export default function Settings({ session, onBack, onUpdateSession }: Props) {
                                 <Lock className="w-4 h-4" /> Change Master Password
                             </button>
                         )}
+
+                        {/* Trusted Devices Section */}
+                        <div className="pt-6 border-t border-slate-800">
+                            <div className="flex items-center justify-between mb-4">
+                                <div className="flex items-center gap-2">
+                                    <ShieldCheck className="w-5 h-5 text-blue-500" />
+                                    <h4 className="text-sm font-bold text-white uppercase tracking-widest">Trusted Environments</h4>
+                                </div>
+                                <span className="text-[10px] font-black text-slate-500 uppercase tracking-tighter">
+                                    {trustedDevices.length} Active {trustedDevices.length === 1 ? 'Token' : 'Tokens'}
+                                </span>
+                            </div>
+
+                            <div className="space-y-3">
+                                {trustLoading ? (
+                                    <div className="flex justify-center py-4"><Loader2 className="w-5 h-5 animate-spin text-slate-700" /></div>
+                                ) : trustedDevices.length === 0 ? (
+                                    <div className="p-4 bg-black/20 border border-slate-800 border-dashed rounded-xl text-center text-[10px] font-bold text-slate-600 uppercase tracking-widest">
+                                        No persistent trust associations found.
+                                    </div>
+                                ) : (
+                                    trustedDevices.map(device => (
+                                        <div key={device.id} className={clsx(
+                                            "p-3 bg-black/40 border rounded-xl flex items-center justify-between gap-4 transition-all",
+                                            device.isCurrent ? "border-blue-500/30" : "border-slate-800"
+                                        )}>
+                                            <div className="flex items-center gap-3 overflow-hidden">
+                                                <div className={clsx(
+                                                    "w-10 h-10 rounded-lg flex items-center justify-center border",
+                                                    device.isCurrent ? "bg-blue-500/10 border-blue-500/20 text-blue-500" : "bg-slate-800 border-slate-700 text-slate-500"
+                                                )}>
+                                                    <Cpu className="w-5 h-5" />
+                                                </div>
+                                                <div className="overflow-hidden">
+                                                    <h5 className="text-[10px] font-black text-white uppercase tracking-widest flex items-center gap-2">
+                                                        {device.deviceName}
+                                                        {device.isCurrent && <span className="px-1.5 py-0.5 bg-blue-500/20 text-blue-400 text-[8px] rounded border border-blue-500/30">CURRENT</span>}
+                                                    </h5>
+                                                    <p className="text-[8px] text-slate-500 font-bold uppercase tracking-tighter truncate">
+                                                        ID: {device.fingerprintHash.substring(0, 16)}... | Expires {new Date(device.expiresAt).toLocaleDateString()}
+                                                    </p>
+                                                </div>
+                                            </div>
+                                            <button
+                                                onClick={() => handleRevokeTrust(device.id)}
+                                                className="p-2 text-slate-500 hover:text-red-500 hover:bg-red-500/10 rounded-lg transition-all"
+                                                title="Revoke Trust"
+                                            >
+                                                <Trash2 className="w-4 h-4" />
+                                            </button>
+                                        </div>
+                                    ))
+                                )}
+                            </div>
+                        </div>
                     </div>
                 </section>
 

@@ -3,7 +3,8 @@
 import { useState } from 'react';
 import { CryptoService } from '@/lib/crypto';
 import { EnvironmentService } from '@/lib/environment';
-import { Loader2, LockOpen, LogIn, Shield, ArrowLeft, Cpu, Eye, EyeOff } from 'lucide-react';
+import { TrustService } from '@/lib/trust';
+import { Loader2, LockOpen, LogIn, Shield, ArrowLeft, Cpu, Eye, EyeOff, ShieldCheck } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import CyberButton from './ui/CyberButton';
 import { showToast } from './ui/Toast';
@@ -23,6 +24,7 @@ export default function LoginForm({ onSuccess, onSwitchToRegister, onOpenRecover
     const [loginContext, setLoginContext] = useState<{ masterKey: Uint8Array, authHash: string, salt: string } | null>(null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
+    const [trustDevice, setTrustDevice] = useState(false);
 
     const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -43,11 +45,18 @@ export default function LoginForm({ onSuccess, onSwitchToRegister, onOpenRecover
             const masterKey = await CryptoService.deriveMasterKey(password, salt, fingerprint);
             const authHash = await CryptoService.hashMasterKeyForAuth(masterKey);
 
-            // 3. Send Hash to Login API
+            // 3. Send Hash to Login API with Device Context
+            const trustTokenData = TrustService.getLocalTrustToken();
+
             const loginRes = await fetch('/api/auth/login', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ username, authHash }),
+                body: JSON.stringify({
+                    username,
+                    authHash,
+                    fingerprint,
+                    trustToken: trustTokenData?.token
+                }),
             });
 
             const loginData = await loginRes.json();
@@ -95,11 +104,24 @@ export default function LoginForm({ onSuccess, onSwitchToRegister, onOpenRecover
                 body: JSON.stringify({
                     username,
                     code: twoFactorCode,
-                    authHash: loginContext.authHash
+                    authHash: loginContext.authHash,
+                    trustDevice,
+                    fingerprint: await EnvironmentService.getFingerprint()
                 }),
             });
             const data = await res.json();
             if (!res.ok) throw new Error(data.error);
+
+            // Handle Trust Token issuance
+            if (data.trustToken) {
+                TrustService.saveTrustToken({
+                    id: crypto.randomUUID(),
+                    token: data.trustToken.token,
+                    fingerprintHash: data.trustToken.fingerprintHash,
+                    expiresAt: data.trustToken.expiresAt,
+                    deviceName: 'Browser Instance'
+                });
+            }
 
             const vaultKey = await CryptoService.decryptKey(data.encryptedVaultKey, loginContext.masterKey);
             onSuccess({
@@ -175,6 +197,24 @@ export default function LoginForm({ onSuccess, onSwitchToRegister, onOpenRecover
                             autoFocus
                             required
                         />
+
+                        <div
+                            onClick={() => setTrustDevice(!trustDevice)}
+                            className={`flex items-center gap-3 p-4 rounded-xl border transition-all cursor-pointer ${trustDevice ? 'bg-blue-500/10 border-blue-500/30' : 'bg-slate-900/40 border-slate-800'
+                                }`}
+                        >
+                            <div className={`w-10 h-10 rounded-lg flex items-center justify-center border transition-all ${trustDevice ? 'bg-blue-500/20 border-blue-500/40 text-blue-400' : 'bg-black/40 border-slate-700 text-slate-500'
+                                }`}>
+                                <ShieldCheck className="w-5 h-5" />
+                            </div>
+                            <div className="flex-1">
+                                <p className="text-[10px] font-black text-white uppercase tracking-widest leading-none mb-1">Trust this device</p>
+                                <p className="text-slate-500 text-[8px] font-bold uppercase tracking-tighter">Bypass 2FA for 30 days</p>
+                            </div>
+                            <div className={`w-8 h-4 rounded-full p-1 transition-all ${trustDevice ? 'bg-blue-600' : 'bg-slate-800'}`}>
+                                <div className={`w-2 h-2 rounded-full bg-white transition-all transform ${trustDevice ? 'translate-x-4' : 'translate-x-0'}`} />
+                            </div>
+                        </div>
 
                         <CyberButton
                             type="submit"
