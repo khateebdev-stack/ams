@@ -51,6 +51,7 @@ export default function VaultDashboard({ session, onLogout, onOpenSettings }: Pr
     const [policyTimeStart, setPolicyTimeStart] = useState('09:00');
     const [policyTimeEnd, setPolicyTimeEnd] = useState('17:00');
     const [policyAutoWipe, setPolicyAutoWipe] = useState(false);
+    const [policyLockedUntil, setPolicyLockedUntil] = useState('');
 
     const strength = getPasswordStrength(password);
 
@@ -246,7 +247,8 @@ export default function VaultDashboard({ session, onLogout, onOpenSettings }: Pr
                 policy: {
                     requireAuth: policyRequireAuth,
                     timeLock: policyTimeLock ? { start: policyTimeStart, end: policyTimeEnd } : null,
-                    autoWipe: policyAutoWipe
+                    autoWipe: policyAutoWipe,
+                    lockedUntil: policyLockedUntil
                 },
                 updatedAt: new Date().toISOString(),
                 history: historyEntry ? [historyEntry, ...previousHistory].slice(0, 10) : previousHistory // Keep last 10 versions
@@ -369,6 +371,7 @@ export default function VaultDashboard({ session, onLogout, onOpenSettings }: Pr
         setPolicyRequireAuth(false);
         setPolicyTimeLock(false);
         setPolicyAutoWipe(false);
+        setPolicyLockedUntil('');
     };
 
     const handleEdit = (item: any) => {
@@ -384,6 +387,7 @@ export default function VaultDashboard({ session, onLogout, onOpenSettings }: Pr
         setPolicyTimeStart(item.policy?.timeLock?.start || '09:00');
         setPolicyTimeEnd(item.policy?.timeLock?.end || '17:00');
         setPolicyAutoWipe(item.policy?.autoWipe || false);
+        setPolicyLockedUntil(item.policy?.lockedUntil || '');
         setShowAddModal(true);
     };
 
@@ -400,14 +404,32 @@ export default function VaultDashboard({ session, onLogout, onOpenSettings }: Pr
     };
 
     const checkPolicyAccess = (item: any, action: 'view' | 'copy') => {
-        // 1. TIME LOCK CHECK
+        const now = new Date();
+
+        // 1. FUTURE UNLOCK CHECK (One-time)
+        if (item.policy?.lockedUntil) {
+            const unlockDate = new Date(item.policy.lockedUntil);
+            if (now < unlockDate) {
+                const diff = unlockDate.getTime() - now.getTime();
+                const hours = Math.floor(diff / (1000 * 60 * 60));
+                const mins = Math.round((diff % (1000 * 60 * 60)) / (1000 * 60));
+
+                let timeMsg = `${mins}m`;
+                if (hours > 0) timeMsg = `${hours}h ${mins}m`;
+                if (hours > 24) timeMsg = `${Math.floor(hours / 24)}d`;
+
+                showToast(`TEMPORAL LOCK: Available in ${timeMsg}.`, 'error');
+                return false;
+            }
+        }
+
+        // 2. TIME LOCK CHECK (Daily Window)
         if (item.policy?.timeLock) {
-            const now = new Date();
             const currentTimeStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
             const { start, end } = item.policy.timeLock;
 
             if (currentTimeStr < start || currentTimeStr > end) {
-                showToast(`ACCESS DENIED: Time-lock active (${start} - ${end}).`, 'error');
+                showToast(`ACCESS DENIED: Window inactive (${start} - ${end}).`, 'error');
                 return false;
             }
         }
@@ -734,6 +756,13 @@ export default function VaultDashboard({ session, onLogout, onOpenSettings }: Pr
                                             </div>
                                         )}
 
+                                        {item.policy?.lockedUntil && new Date() < new Date(item.policy.lockedUntil) && (
+                                            <div className="flex items-center gap-1 px-2 py-0.5 bg-rose-500/10 border border-rose-500/20 rounded-md" title={`Locked Until: ${new Date(item.policy.lockedUntil).toLocaleString()}`}>
+                                                <Lock className="w-2.5 h-2.5 text-rose-500" />
+                                                <span className="text-[7px] font-black text-rose-500 uppercase tracking-tighter">LOCKED UNTIL {new Date(item.policy.lockedUntil).toLocaleDateString()}</span>
+                                            </div>
+                                        )}
+
                                         {item.tags && item.tags.split(',').map((tag: string, idx: number) => (
                                             <span key={idx} className="px-2 py-0.5 bg-blue-500/5 border border-blue-500/10 rounded-md text-[7px] font-black text-blue-400 uppercase tracking-widest whitespace-nowrap">
                                                 {tag.trim()}
@@ -744,7 +773,7 @@ export default function VaultDashboard({ session, onLogout, onOpenSettings }: Pr
                                     <div className="flex gap-2">
                                         <div className="flex-1">
                                             <VerifyModal
-                                                actionLabel="Decrypt"
+                                                actionLabel="Unlock"
                                                 forceVerify={item.policy?.requireAuth}
                                                 onVerified={() => {
                                                     if (checkPolicyAccess(item, 'view')) {
@@ -753,8 +782,17 @@ export default function VaultDashboard({ session, onLogout, onOpenSettings }: Pr
                                                 }}
                                                 session={session}
                                             >
-                                                <button className="w-full flex items-center justify-center gap-2 py-2 bg-slate-900/50 hover:bg-blue-500/10 border border-slate-800 hover:border-blue-500/20 rounded-xl text-[9px] font-black text-slate-400 hover:text-blue-400 uppercase tracking-widest transition-all">
-                                                    <Eye className="w-3 h-3" /> View
+                                                <button
+                                                    disabled={item.policy?.lockedUntil && new Date() < new Date(item.policy.lockedUntil)}
+                                                    className={clsx(
+                                                        "w-full flex items-center justify-center gap-2 py-2 border rounded-xl text-[9px] font-black uppercase tracking-widest transition-all",
+                                                        (item.policy?.lockedUntil && new Date() < new Date(item.policy.lockedUntil))
+                                                            ? "bg-slate-900/20 border-slate-900 text-slate-700 cursor-not-allowed opacity-50"
+                                                            : "bg-slate-900/50 hover:bg-blue-500/10 border-slate-800 hover:border-blue-500/20 text-slate-400 hover:text-blue-400"
+                                                    )}
+                                                >
+                                                    {item.policy?.lockedUntil && new Date() < new Date(item.policy.lockedUntil) ? <Lock className="w-3 h-3" /> : <Eye className="w-3 h-3" />}
+                                                    {item.policy?.lockedUntil && new Date() < new Date(item.policy.lockedUntil) ? 'Locked' : 'View'}
                                                 </button>
                                             </VerifyModal>
                                         </div>
@@ -766,7 +804,15 @@ export default function VaultDashboard({ session, onLogout, onOpenSettings }: Pr
                                                 onVerified={() => handleCopy(item)}
                                                 session={session}
                                             >
-                                                <button className="w-full flex items-center justify-center gap-2 py-2 bg-slate-900/50 hover:bg-emerald-500/10 border border-slate-800 hover:border-emerald-500/20 rounded-xl text-[9px] font-black text-slate-400 hover:text-emerald-400 uppercase tracking-widest transition-all">
+                                                <button
+                                                    disabled={item.policy?.lockedUntil && new Date() < new Date(item.policy.lockedUntil)}
+                                                    className={clsx(
+                                                        "w-full flex items-center justify-center gap-2 py-2 border rounded-xl text-[9px] font-black uppercase tracking-widest transition-all",
+                                                        (item.policy?.lockedUntil && new Date() < new Date(item.policy.lockedUntil))
+                                                            ? "bg-slate-900/20 border-slate-900 text-slate-700 cursor-not-allowed opacity-50"
+                                                            : "bg-slate-900/50 hover:bg-emerald-500/10 border-slate-800 hover:border-emerald-500/20 text-slate-400 hover:text-emerald-400"
+                                                    )}
+                                                >
                                                     <Copy className="w-3 h-3" /> Copy
                                                 </button>
                                             </VerifyModal>
@@ -951,6 +997,31 @@ export default function VaultDashboard({ session, onLogout, onOpenSettings }: Pr
                                                         <input type="time" value={policyTimeStart} onChange={(e) => setPolicyTimeStart(e.target.value)} className="bg-black/60 border border-slate-800 rounded-md p-1 text-[9px] font-black text-blue-400 outline-none" />
                                                         <span className="text-slate-600 text-[8px] font-black uppercase">To</span>
                                                         <input type="time" value={policyTimeEnd} onChange={(e) => setPolicyTimeEnd(e.target.value)} className="bg-black/60 border border-slate-800 rounded-md p-1 text-[9px] font-black text-blue-400 outline-none" />
+                                                    </motion.div>
+                                                )}
+                                            </div>
+
+                                            <div className="space-y-2">
+                                                <label className="flex items-center justify-between p-2 hover:bg-white/5 rounded-lg cursor-pointer transition-colors group">
+                                                    <div className="flex flex-col">
+                                                        <span className="text-[9px] font-bold text-slate-400 group-hover:text-slate-200 uppercase tracking-tight">Future Unlock (Future-Dated Release)</span>
+                                                        <span className="text-[7px] text-slate-600 uppercase font-black tracking-tighter">Lock until specific date</span>
+                                                    </div>
+                                                    <input type="checkbox" checked={!!policyLockedUntil} onChange={(e) => setPolicyLockedUntil(e.target.checked ? new Date().toISOString().slice(0, 16) : '')} className="w-3.5 h-3.5 rounded border-slate-700 bg-slate-900 text-blue-500 focus:ring-blue-500/50" />
+                                                </label>
+
+                                                {policyLockedUntil && (
+                                                    <motion.div
+                                                        initial={{ opacity: 0, scale: 0.95 }}
+                                                        animate={{ opacity: 1, scale: 1 }}
+                                                        className="px-2"
+                                                    >
+                                                        <input
+                                                            type="datetime-local"
+                                                            value={policyLockedUntil}
+                                                            onChange={(e) => setPolicyLockedUntil(e.target.value)}
+                                                            className="w-full p-2 bg-black/60 border border-blue-500/20 rounded-lg text-white text-[10px] uppercase font-bold outline-none focus:border-blue-500/50"
+                                                        />
                                                     </motion.div>
                                                 )}
                                             </div>
