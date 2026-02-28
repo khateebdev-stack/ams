@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { CryptoService } from '@/lib/crypto';
+import { EnvironmentService } from '@/lib/environment';
 import { Loader2, KeyRound, CheckCircle, AlertTriangle } from 'lucide-react';
 
 interface Props {
@@ -42,12 +43,12 @@ export default function Recovery({ onSuccess, onBack }: Props) {
 
             // 4. Setup NEW Master Password
             const newSalt = CryptoService.generateSalt();
-            const newMasterKey = await CryptoService.deriveMasterKey(newPassword, newSalt);
+            const fingerprint = await EnvironmentService.getFingerprint();
+            const newMasterKey = await CryptoService.deriveMasterKey(newPassword, newSalt, fingerprint);
             const newAuthHash = await CryptoService.hashMasterKeyForAuth(newMasterKey);
             const newEncryptedVaultKey = await CryptoService.encryptKey(vaultKey, newMasterKey);
 
             // 5. Update password on server
-            // Note: We need a dedicated reset API or use the update endpoint if it supports password resets
             const resetRes = await fetch('/api/auth/reset-password', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },

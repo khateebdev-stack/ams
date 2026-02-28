@@ -1,55 +1,8 @@
 {
   "users": [
-    {
-      "id": "3a547491-ae36-472a-acbd-14234e3ed317",
-      "username": "skrmc@2013",
-      "salt": "3ecc5f40ddd5e108ff8847cce687dd17",
-      "authHash": "df3edc9fda23cc99d2c426b33fa7d94a931bf8427cc6e36c284c9d5bfd51a632",
-      "encryptedVaultKey": "ef1413174cafa30662ae9d1bf3b376fa21d4a7591b9925ba:662794731c4e0aa63e3be6b66bf4f96ec3a4e823f3a721da04097624ef27eedd579149fb44a596e59561bcd03739f5aa",
-      "encryptedRecoveryKey": "d90adc5867b47b8f659ba0882cf364d5806d34e5554dfb09:66e986ddf4b546bc30c704fb572b02844bbc356f3e6bfd0a9edb4d1ed96166e360fff2fad8681d4ecfee2c63fe238f69841118a534dac6b3fb8973160788a0a5cbe04dce9aac022ca3e8739faf80f7bf",
-      "recoverySalt": "08d6790b4d3d648ff7ad38e3b4c3de16",
-      "recoveryVaultKey": "f423ff1216e9c307025a951f00eec61429928b91ced58f0e:ef18b93923a5cdfd88f9643206f1455ee7d89fcff9411233a0435b3c093e9495e785ca9aceff0ac56aa9d797e2ff690f",
-      "createdAt": "2026-02-07T12:17:53.472Z",
-      "tempTwoFactorSecret": "FA4FCSRPORNWGLS5FE2XAMKMFE4WCI2CJ5RXMOTONVNEINTBFQXQ"
-    }
+   
   ],
   "sessions": [
-    {
-      "id": "bfd3688b-009c-4fa1-8ea1-365ff631598f",
-      "userId": "623024af-895e-41fb-a455-ee760524d0f9",
-      "tokenHash": "4a371851-44bd-4673-9528-2f1200c1b704",
-      "expiresAt": "2026-02-07T11:50:30.628Z"
-    },
-    {
-      "id": "cc36fede-89c1-4d88-8547-a87df4c32390",
-      "userId": "623024af-895e-41fb-a455-ee760524d0f9",
-      "tokenHash": "80795025-8d81-4ef2-a32f-7d6ee8a999a1",
-      "expiresAt": "2026-02-08T04:11:19.809Z"
-    },
-    {
-      "id": "34472630-3a20-4568-a84c-9cd94d3e533a",
-      "userId": "623024af-895e-41fb-a455-ee760524d0f9",
-      "tokenHash": "97c07dc6-e390-4931-b842-06d9d3be54ef",
-      "expiresAt": "2026-02-08T04:24:19.119Z"
-    },
-    {
-      "id": "45a775a7-711f-4387-8a62-d621984a6de3",
-      "userId": "623024af-895e-41fb-a455-ee760524d0f9",
-      "tokenHash": "761d0cb7-ed93-4cb0-ad63-40ee2952557e",
-      "expiresAt": "2026-02-08T04:28:44.221Z"
-    },
-    {
-      "id": "1ba2207c-d403-465f-9e1e-5dab96fb73ee",
-      "userId": "623024af-895e-41fb-a455-ee760524d0f9",
-      "tokenHash": "bdfc0e94-e306-4591-989d-791d9aecb391",
-      "expiresAt": "2026-02-08T04:35:04.213Z"
-    },
-    {
-      "id": "bb45d54f-4206-4489-bbf2-9f9ce26c6601",
-      "userId": "623024af-895e-41fb-a455-ee760524d0f9",
-      "tokenHash": "cbd0dd34-524d-4d8c-8d2e-4c301a5b7c10",
-      "expiresAt": "2026-02-08T04:46:02.164Z"
-    },
     {
       "id": "465c34e0-688d-48d8-b02f-95d92036f36e",
       "userId": "623024af-895e-41fb-a455-ee760524d0f9",
@@ -157,6 +110,228 @@
       "userId": "3a547491-ae36-472a-acbd-14234e3ed317",
       "tokenHash": "3ee9a010-efa2-4e2e-add8-ed029780e900",
       "expiresAt": "2026-02-08T12:18:02.283Z"
+    },
+    {
+      "id": "b3fcb65d-5994-47f6-bf1f-2bbac1a01981",
+      "userId": "3a547491-ae36-472a-acbd-14234e3ed317",
+      "tokenHash": "4e117084-4870-4b0d-847b-9a5f2bc3ac43",
+      "expiresAt": "2026-02-10T13:20:07.757Z"
+    },
+    {
+      "id": "ccede324-2b3a-4a86-a327-1aae76e230f0",
+      "userId": "3a547491-ae36-472a-acbd-14234e3ed317",
+      "tokenHash": "586229e0-a08d-4348-8b3e-a8d75355d05a",
+      "expiresAt": "2026-02-10T13:40:43.849Z"
+    },
+    {
+      "id": "e1051d28-c048-4aeb-91c3-7fa15231754b",
+      "userId": "3a547491-ae36-472a-acbd-14234e3ed317",
+      "tokenHash": "0efbd181-8d69-4209-bbb0-7133251d2464",
+      "expiresAt": "2026-02-10T13:56:43.388Z"
+    },
+    {
+      "id": "710a8578-b5fb-4044-9d3d-17e469720fff",
+      "userId": "3a547491-ae36-472a-acbd-14234e3ed317",
+      "tokenHash": "c1030ecf-8928-49e8-95a1-e4fbe9114258",
+      "expiresAt": "2026-02-10T17:03:03.883Z"
+    },
+    {
+      "id": "57979aa3-11b1-4be0-b0a9-339f903ad7bc",
+      "userId": "3a547491-ae36-472a-acbd-14234e3ed317",
+      "tokenHash": "7d7bb17a-4172-4e26-a3b2-59874c176cdb",
+      "expiresAt": "2026-02-10T17:04:00.173Z"
+    },
+    {
+      "id": "9f071b2d-88ad-483f-9122-85a6977b2e7c",
+      "userId": "3a547491-ae36-472a-acbd-14234e3ed317",
+      "tokenHash": "20f2f7fe-7b19-4b4a-a23f-d74796aae4e0",
+      "expiresAt": "2026-02-10T17:04:10.793Z"
+    },
+    {
+      "id": "9b3c17a0-3965-48aa-8470-f8a556eea304",
+      "userId": "3a547491-ae36-472a-acbd-14234e3ed317",
+      "tokenHash": "110cb49d-8b8e-456a-b487-0bc2a6f83a11",
+      "expiresAt": "2026-02-10T17:05:31.282Z"
+    },
+    {
+      "id": "a895f24c-4778-415f-aa96-fe8a1cc532fc",
+      "userId": "3a547491-ae36-472a-acbd-14234e3ed317",
+      "tokenHash": "3624c7b4-caef-4d65-9f58-8efbdcab07c1",
+      "expiresAt": "2026-02-10T17:08:24.717Z"
+    },
+    {
+      "id": "ae18b039-785a-4d9d-a540-78711c61896c",
+      "userId": "3a547491-ae36-472a-acbd-14234e3ed317",
+      "tokenHash": "2c454cae-acfc-4387-80c1-ea6047234bc9",
+      "expiresAt": "2026-02-10T17:15:22.122Z"
+    },
+    {
+      "id": "f9f1063f-9f37-4863-9b82-c206cf668fa1",
+      "userId": "3a547491-ae36-472a-acbd-14234e3ed317",
+      "tokenHash": "af52a36d-af7e-417b-b38b-fa8e7118f4f7",
+      "expiresAt": "2026-02-10T17:17:26.381Z"
+    },
+    {
+      "id": "752924d0-6008-43c0-b6f5-b4dc2b8b342d",
+      "userId": "3a547491-ae36-472a-acbd-14234e3ed317",
+      "tokenHash": "b97961ee-e0da-4bb2-afc9-eb5dd52ba615",
+      "expiresAt": "2026-02-10T17:26:59.916Z"
+    },
+    {
+      "id": "44054c13-073a-4b20-908b-1005c50ace22",
+      "userId": "3a547491-ae36-472a-acbd-14234e3ed317",
+      "tokenHash": "447e41f6-86fb-40dd-a5d8-e3fd6270f9cd",
+      "expiresAt": "2026-02-10T17:36:18.962Z"
+    },
+    {
+      "id": "8a2dc8a1-559b-48ac-b650-c6268d652c4b",
+      "userId": "cf4d578f-3164-4800-b417-775f40f5c142",
+      "tokenHash": "9ae1b22d-f513-459c-bc00-5d09e9114b00",
+      "expiresAt": "2026-02-10T17:38:21.486Z"
+    },
+    {
+      "id": "896a1474-0874-43de-ae52-a9c7f2c04db3",
+      "userId": "cf4d578f-3164-4800-b417-775f40f5c142",
+      "tokenHash": "883f8500-96ff-4f92-a6fe-dcb54cf6453f",
+      "expiresAt": "2026-02-17T15:58:50.477Z"
+    },
+    {
+      "id": "1b15f73c-34b3-4ed2-8e08-5e70372ae812",
+      "userId": "6a2b31a0-6cb7-49bb-aac1-fefec59d7e49",
+      "tokenHash": "6ee03527-d1aa-4852-8845-dcca8fac7db3",
+      "expiresAt": "2026-02-23T06:48:05.133Z"
+    },
+    {
+      "id": "5cfb661d-0c48-42ab-b985-f6e80cc82e6a",
+      "userId": "6a2b31a0-6cb7-49bb-aac1-fefec59d7e49",
+      "tokenHash": "97cbd80b-6e1a-4544-9ff5-336ffc356f48",
+      "expiresAt": "2026-02-23T06:48:34.276Z"
+    },
+    {
+      "id": "abe950ab-2896-46e7-b9f2-3ea3ceb81cf8",
+      "userId": "39210bf0-bb7a-43da-b2f9-cdbb323a282a",
+      "tokenHash": "b901f006-bbd4-4f1d-bb84-ca80f92698a5",
+      "expiresAt": "2026-02-23T06:52:02.670Z"
+    },
+    {
+      "id": "6965492a-5d76-4d9f-b81d-28a452606b33",
+      "userId": "4ed3260e-b36d-4461-a1b8-8c7a2b41c0a2",
+      "tokenHash": "f3a3900c-b8ee-42c4-ade7-665f7fe89120",
+      "expiresAt": "2026-02-23T07:10:43.378Z"
+    },
+    {
+      "id": "a0b600f2-770f-4854-9eae-99f229a569f8",
+      "userId": "4ed3260e-b36d-4461-a1b8-8c7a2b41c0a2",
+      "tokenHash": "183eabb5-d8de-4fc4-89af-a7255189610f",
+      "expiresAt": "2026-02-23T07:11:18.195Z"
+    },
+    {
+      "id": "d849a06a-5c11-4c2b-ae04-965569a79076",
+      "userId": "4ed3260e-b36d-4461-a1b8-8c7a2b41c0a2",
+      "tokenHash": "7bdbc91c-0448-441d-bf98-67228a482c5b",
+      "expiresAt": "2026-02-23T07:11:51.799Z"
+    },
+    {
+      "id": "6cf9a05e-c97e-4b2c-a7f6-47d98c8d6222",
+      "userId": "4ed3260e-b36d-4461-a1b8-8c7a2b41c0a2",
+      "tokenHash": "72293417-9b24-42df-bb0e-3310cae7f6ce",
+      "expiresAt": "2026-02-23T07:12:21.090Z"
+    },
+    {
+      "id": "637b9e75-094b-48a5-9ea2-3b68636f77f1",
+      "userId": "4ed3260e-b36d-4461-a1b8-8c7a2b41c0a2",
+      "tokenHash": "2bd0dde0-6a7b-46d9-9b14-77693e232f6d",
+      "expiresAt": "2026-02-23T07:12:26.088Z"
+    },
+    {
+      "id": "98208682-81b4-4296-a62b-7ffdb41fc9df",
+      "userId": "4ed3260e-b36d-4461-a1b8-8c7a2b41c0a2",
+      "tokenHash": "39d045fc-3d42-436b-b06d-2f15fec63212",
+      "expiresAt": "2026-02-23T07:17:56.420Z"
+    },
+    {
+      "id": "d1ad709f-483b-486b-a3de-ef4cb2ace87b",
+      "userId": "4ed3260e-b36d-4461-a1b8-8c7a2b41c0a2",
+      "tokenHash": "a7530e1e-bb42-43c6-b4b2-8b3dd6e63b9e",
+      "expiresAt": "2026-02-23T07:19:49.843Z"
+    },
+    {
+      "id": "d3f392be-e08e-4a28-a835-0f68b3d676f0",
+      "userId": "4ed3260e-b36d-4461-a1b8-8c7a2b41c0a2",
+      "tokenHash": "f76eb3e2-b691-4b43-8c6e-c49c8c3ca4ea",
+      "expiresAt": "2026-02-23T07:21:05.807Z"
+    },
+    {
+      "id": "521b07f4-d12e-49b6-8e7c-9a987f821c03",
+      "userId": "68e3eb37-0690-47d2-a312-e5ce371c1197",
+      "tokenHash": "7023a497-6248-4868-9701-acc8d96f1676",
+      "expiresAt": "2026-02-27T03:36:58.756Z"
+    },
+    {
+      "id": "c774edba-66ab-4f72-be6e-2fd654c83637",
+      "userId": "68e3eb37-0690-47d2-a312-e5ce371c1197",
+      "tokenHash": "91155d8a-bc5c-4c99-93ea-fcf89895ea5b",
+      "expiresAt": "2026-02-27T03:38:37.933Z"
+    },
+    {
+      "id": "54351596-a1e9-4a30-a251-7c9a8c06321c",
+      "userId": "68e3eb37-0690-47d2-a312-e5ce371c1197",
+      "tokenHash": "0395faef-60bc-46e9-ace4-a1afcdd5d061",
+      "expiresAt": "2026-02-27T03:50:03.772Z"
+    },
+    {
+      "id": "5d1206dd-562d-4d2d-85cd-d23e207996c3",
+      "userId": "68e3eb37-0690-47d2-a312-e5ce371c1197",
+      "tokenHash": "d8672513-1e27-4586-b42d-2eeba18798a0",
+      "expiresAt": "2026-02-27T03:50:42.390Z"
+    },
+    {
+      "id": "0357f50d-32a8-494c-a243-38c5dfcf7487",
+      "userId": "68e3eb37-0690-47d2-a312-e5ce371c1197",
+      "tokenHash": "b277a252-8598-4ae4-8376-2087ff148186",
+      "expiresAt": "2026-02-27T04:34:24.455Z"
+    },
+    {
+      "id": "17f535a0-42ca-4824-bc20-7454826e19c7",
+      "userId": "68e3eb37-0690-47d2-a312-e5ce371c1197",
+      "tokenHash": "c19aee52-c73b-4c15-bd54-ec3e5ca2414b",
+      "expiresAt": "2026-02-27T04:35:39.157Z"
+    },
+    {
+      "id": "58a7c1e1-b514-4688-a90c-f21fb2de3344",
+      "userId": "68e3eb37-0690-47d2-a312-e5ce371c1197",
+      "tokenHash": "7adef06f-7dd7-451a-9486-f755285ec7a9",
+      "expiresAt": "2026-02-27T04:36:22.446Z"
+    },
+    {
+      "id": "0217d693-b073-4d2a-99aa-b2a4717dc8b3",
+      "userId": "c1946f8a-0556-47dc-95d9-cf8b019d9d37",
+      "tokenHash": "18969cab-4b15-4df3-b50e-2b2ec05be07d",
+      "expiresAt": "2026-02-27T08:38:29.787Z"
+    },
+    {
+      "id": "36e9a10e-18a5-4b08-8ee1-2874ceda94c9",
+      "userId": "c1946f8a-0556-47dc-95d9-cf8b019d9d37",
+      "tokenHash": "ce962dd6-f6cc-4119-82f7-012ada36e3c3",
+      "expiresAt": "2026-02-27T18:07:52.758Z"
+    },
+    {
+      "id": "20306e0e-31f4-46c0-ae5c-29c7644f5e32",
+      "userId": "bd9bf1c3-ce5d-4eb7-9df1-9644b60362c4",
+      "tokenHash": "474261f8-e0df-466c-8c85-1e8fc1fbb05f",
+      "expiresAt": "2026-02-27T18:09:03.370Z"
+    },
+    {
+      "id": "8582fcd5-ec26-483f-905c-92f94e40a1cd",
+      "userId": "bd9bf1c3-ce5d-4eb7-9df1-9644b60362c4",
+      "tokenHash": "74af94fc-4020-40d5-987a-223c93768190",
+      "expiresAt": "2026-02-27T18:30:08.210Z"
+    },
+    {
+      "id": "f8b1bed0-328a-4763-9a4a-a7495f148708",
+      "userId": "1af8bf6d-4638-47a9-b4f1-c7d46dcfd2ca",
+      "tokenHash": "bae52b37-8736-4483-b36f-28a23b3a5ddd",
+      "expiresAt": "2026-03-01T18:24:27.614Z"
     }
   ],
   "items": [
@@ -186,6 +361,27 @@
       "iv": "b32a24295d9a310f931fa42aa2f9f3c001980bfa83b4d663",
       "createdAt": "2026-02-07T07:11:11.039Z",
       "updatedAt": "2026-02-07T07:11:11.039Z"
+    },
+    {
+      "id": "60eac141-0b4e-4a77-bcf3-37683f664739",
+      "userId": "3a547491-ae36-472a-acbd-14234e3ed317",
+      "vaultId": "bf5eec98-c3d9-431c-8d6d-8ad199678be2",
+      "encryptedData": "36ae82a26393871ee21872a0049381f4e6be8644f3b43d968828fdf2255d56b8cfa43e6704da71d18a07725eecf04e0fca2920f360536adf979c283fe8b5fcfcbf8983a819f845848a422584e9ceec5761b00f796f2a9e63c2537a0321b9ea78bc5da1401f5739895fb9d10a8ef37848bcb18b75be9e23740f2c9a33d47068e0c6e003b37b9a5e3c4ef4151bbddf5c1cd49ae2eb5300c64da701643ada9c4ccffdabc57e73ad874ddc77c04bfac74e7488a1851dca9a9b3adee6da097e0886fb9cfb0f6774877ea4051ec889b14a0510c8a2d01150e33fa7cbbe1415b773572d0875694c419bc89c753ac3c6ffac628927f95f20aef943250e7fcd725064e40c0ddc711a2050ebe492cff8acde4abfd25966f18444baaa90817a09",
+      "iv": "1b659a3f86d642ffde01d46e398fcb05574551b2c0ca2fd3",
+      "blindIndex": "51f99d155ffd1ef113adef37b0676252b47f6609e0d2ce7a5d5bb70507475a27",
+      "createdAt": "2026-02-09T13:57:34.287Z",
+      "updatedAt": "2026-02-09T13:57:34.287Z"
+    },
+    {
+      "id": "f6c6d306-049b-49df-b006-def1624e5a57",
+      "userId": "4ed3260e-b36d-4461-a1b8-8c7a2b41c0a2",
+      "vaultId": "d2f053e2-3ee0-43bb-93b2-8d5e0ac63324",
+      "encryptedData": "7e9a3b1890473e4c136174c131a1897ed53786f6ddc5c6dbae972c21c27d378dc0d868c908c42043213908dbde82cc3b7ee39d26d09f0e89b0366a699d16d9e03d12fa420fd00235fd8d8b84023915559cd5ec74e2b6aec563459c0f9a00387671deed0a5e83e676701cbdf528f11ece3025b6e3a3c03e3f8cd0be8c12f2a607ea00a84c23b0ea2f7cedaa49ff247d623c33a51986a7eb95cf318ad54dd186f3acffd6cfea3e6c912963158545b7c5a3a65f9bb15ccd0400ff6a0bf0e1145cc5a9bb6e8252c09d23df8a2614a7b329b4059c78fea04b732fac59f0e370080d7a3d821750ac8326d476d6d2fa446a32fa1b4b942c8d578f424f87361326facfbe8afd1a64212b9a145757047b494df89237a3b4a11b0e36c5b688aee67255a295addbf68b1f0695822af390326ee7143d4303f354d06aa1c245706530f9311d151b27ad2ce55f0ad1bc0f6e39c6fac64055b9f8c68ae4ee062bbaa9e46be33a39cfe92bb317578a1ff26eff4b45258787ed896e304d13d370629b15c1228d9ffe15ec3d645101b5440c581248f3cc435cea2dda8626161974e173a48131552dc24569a45c3298307928",
+      "iv": "952d57480a435b8dc85715eaad17ed7e83a16e0479a9d7dd",
+      "blindIndex": "8a3711799d66745ea3a5530c85b8bd3f689154ec56ac5e19ca49f709c9de0f0b",
+      "isHoneyToken": true,
+      "createdAt": "2026-02-22T07:14:09.536Z",
+      "updatedAt": "2026-02-22T07:14:09.536Z"
     }
   ],
   "vaults": [
@@ -228,6 +424,16 @@
       "iv": "15a5885c9fcac38a7d6065aa14bf3eb7d5ed2a85fdaa9ef7",
       "createdAt": "2026-02-07T12:18:18.479Z",
       "updatedAt": "2026-02-07T12:18:18.479Z"
+    },
+    {
+      "id": "d2f053e2-3ee0-43bb-93b2-8d5e0ac63324",
+      "userId": "4ed3260e-b36d-4461-a1b8-8c7a2b41c0a2",
+      "name": "bank",
+      "icon": "Lock",
+      "encryptedSubKey": "135d36bad367a3cc7a5cb799d8d7b1daf469ea2f137ee2c54be075d3eb42462e3aef57158922d8b6fb59cfd660b0e710",
+      "iv": "6eec6f5ef348a0f840fe85c99cd70e021e65a5e1dc1fb310",
+      "createdAt": "2026-02-22T07:13:41.427Z",
+      "updatedAt": "2026-02-22T07:13:41.427Z"
     }
   ],
   "auditLogs": [
@@ -571,7 +777,644 @@
       "action": "VAULT_CREATED",
       "ipAddress": "::1",
       "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+    },
+    {
+      "id": "12b4fb9b-e413-4f01-9f10-a95e195db7c7",
+      "createdAt": "2026-02-09T13:20:07.752Z",
+      "username": "skrmc@2013",
+      "event": "LOGIN_SUCCESS"
+    },
+    {
+      "id": "ffe3e1aa-cd3a-44fa-a60d-9147805511cf",
+      "createdAt": "2026-02-09T13:21:21.722Z",
+      "username": "skrmc@2013",
+      "event": "ITEM_UPDATED",
+      "metadata": {
+        "itemId": "f81bb656-68b2-4bf1-ab95-ce6e0541ca01"
+      }
+    },
+    {
+      "id": "c7d6f427-3e96-46a7-b0b1-00958dd27863",
+      "createdAt": "2026-02-09T13:21:55.120Z",
+      "username": "skrmc@2013",
+      "event": "ITEM_UPDATED",
+      "metadata": {
+        "itemId": "f81bb656-68b2-4bf1-ab95-ce6e0541ca01"
+      }
+    },
+    {
+      "id": "76484e26-d650-4649-b202-a33575088f51",
+      "createdAt": "2026-02-09T13:40:43.848Z",
+      "username": "skrmc@2013",
+      "event": "LOGIN_SUCCESS"
+    },
+    {
+      "id": "12d002ea-91e2-4eb0-a964-303d0979dc48",
+      "createdAt": "2026-02-09T13:40:56.279Z",
+      "username": "skrmc@2013",
+      "event": "ITEM_UPDATED",
+      "metadata": {
+        "itemId": "f81bb656-68b2-4bf1-ab95-ce6e0541ca01"
+      }
+    },
+    {
+      "id": "1260ab7e-e288-4c5c-9a00-fb13706e4a18",
+      "createdAt": "2026-02-09T13:41:25.891Z",
+      "username": "skrmc@2013",
+      "event": "ITEM_DELETED",
+      "metadata": {
+        "itemId": "55f5fd83-5825-43a0-9250-1fce68f42fad"
+      }
+    },
+    {
+      "id": "a5b9acf6-77e3-4484-ae9b-c3e7bbb6e381",
+      "createdAt": "2026-02-09T13:44:20.124Z",
+      "username": "skrmc@2013",
+      "event": "ITEM_DELETED",
+      "metadata": {
+        "itemId": "f81bb656-68b2-4bf1-ab95-ce6e0541ca01"
+      }
+    },
+    {
+      "id": "26cda3e9-00de-4f6e-aa7f-b67d29c25d81",
+      "createdAt": "2026-02-09T13:56:43.387Z",
+      "username": "skrmc@2013",
+      "event": "LOGIN_SUCCESS"
+    },
+    {
+      "id": "c7599fbc-0d9e-4843-b58c-a76f5c46b648",
+      "createdAt": "2026-02-09T17:03:03.882Z",
+      "username": "skrmc@2013",
+      "event": "LOGIN_SUCCESS"
+    },
+    {
+      "id": "f98f834b-8bec-4901-aeec-e9d859a29beb",
+      "createdAt": "2026-02-09T17:04:00.171Z",
+      "username": "skrmc@2013",
+      "event": "LOGIN_SUCCESS"
+    },
+    {
+      "id": "5f72cf35-54f7-4954-a4e3-1b524e6598ae",
+      "createdAt": "2026-02-09T17:04:10.792Z",
+      "username": "skrmc@2013",
+      "event": "LOGIN_SUCCESS"
+    },
+    {
+      "id": "7cc17419-6a8c-40c1-9d9d-ca118196354c",
+      "createdAt": "2026-02-09T17:05:31.281Z",
+      "username": "skrmc@2013",
+      "event": "LOGIN_SUCCESS"
+    },
+    {
+      "id": "89c11969-18d3-4433-90e3-8b63f8042783",
+      "createdAt": "2026-02-09T17:08:24.717Z",
+      "username": "skrmc@2013",
+      "event": "LOGIN_SUCCESS"
+    },
+    {
+      "id": "d6934548-424d-4335-b13f-a8b746879b5a",
+      "createdAt": "2026-02-09T17:15:22.121Z",
+      "username": "skrmc@2013",
+      "event": "LOGIN_SUCCESS"
+    },
+    {
+      "id": "c485cef3-9062-4970-93bc-c4901453aa94",
+      "createdAt": "2026-02-09T17:17:26.381Z",
+      "username": "skrmc@2013",
+      "event": "LOGIN_SUCCESS"
+    },
+    {
+      "id": "045662e6-a1ea-4a7a-8745-a01b45291b5b",
+      "createdAt": "2026-02-09T17:26:59.915Z",
+      "username": "skrmc@2013",
+      "event": "LOGIN_SUCCESS"
+    },
+    {
+      "id": "a362f8f3-4125-4182-859a-31600386501e",
+      "createdAt": "2026-02-09T17:36:18.961Z",
+      "username": "skrmc@2013",
+      "event": "LOGIN_SUCCESS"
+    },
+    {
+      "id": "0ed8aff3-bafc-4a14-9619-662decb59248",
+      "createdAt": "2026-02-09T17:38:12.623Z",
+      "username": "skrmc@2013",
+      "event": "REGISTRATION_SUCCESS"
+    },
+    {
+      "id": "4327e3b7-63a1-4f99-b1c6-9e26c74b06b6",
+      "createdAt": "2026-02-09T17:38:21.485Z",
+      "username": "skrmc@2013",
+      "event": "LOGIN_SUCCESS"
+    },
+    {
+      "id": "a36bfece-317b-4beb-ad1c-b07a73cf1754",
+      "createdAt": "2026-02-16T15:58:50.362Z",
+      "username": "skrmc@2013",
+      "event": "LOGIN_SUCCESS"
+    },
+    {
+      "id": "353e954d-86c9-41ca-96eb-8bbaa739ef33",
+      "createdAt": "2026-02-22T06:46:22.305Z",
+      "username": "skrmc@2013",
+      "event": "LOGIN_FAILURE",
+      "metadata": {
+        "reason": "Invalid hash"
+      }
+    },
+    {
+      "id": "a3849fa3-f23b-4f52-a927-1c320d38c414",
+      "createdAt": "2026-02-22T06:46:26.801Z",
+      "username": "skrmc@2013",
+      "event": "LOGIN_FAILURE",
+      "metadata": {
+        "reason": "Invalid hash"
+      }
+    },
+    {
+      "id": "19cac222-5d58-4e90-afe1-37100319b895",
+      "createdAt": "2026-02-22T06:47:20.890Z",
+      "username": "skrmc@2013",
+      "event": "LOGIN_FAILURE",
+      "metadata": {
+        "reason": "Invalid hash"
+      }
+    },
+    {
+      "id": "234ca74c-45ff-471b-8946-00e9af57ca33",
+      "createdAt": "2026-02-22T06:47:49.562Z",
+      "username": "skrmc@2013",
+      "event": "REGISTRATION_SUCCESS"
+    },
+    {
+      "id": "72d3b05f-b64a-43bb-8fb9-1a299cca5d1f",
+      "createdAt": "2026-02-22T06:48:05.123Z",
+      "username": "skrmc@2013",
+      "event": "LOGIN_SUCCESS"
+    },
+    {
+      "id": "b291cc93-e624-4427-811a-8ef15c332048",
+      "createdAt": "2026-02-22T06:48:34.275Z",
+      "username": "skrmc@2013",
+      "event": "LOGIN_SUCCESS"
+    },
+    {
+      "id": "c3ff8a33-a667-42bc-9af2-2a63abc6a0a5",
+      "createdAt": "2026-02-22T06:49:45.436Z",
+      "username": "skrmc@2013",
+      "event": "PASSWORD_RESET_RECOVERY"
+    },
+    {
+      "id": "0cc656d7-e9f1-4000-a4b3-03b6eb9b64c7",
+      "createdAt": "2026-02-22T06:49:51.122Z",
+      "username": "skrmc@2013",
+      "event": "LOGIN_FAILURE",
+      "metadata": {
+        "reason": "Invalid hash"
+      }
+    },
+    {
+      "id": "628e8de9-cb14-400d-a237-92185261a9e6",
+      "createdAt": "2026-02-22T06:51:49.309Z",
+      "username": "skrmc@2013",
+      "event": "REGISTRATION_SUCCESS"
+    },
+    {
+      "id": "e823c659-047a-4047-8f05-f18506cd59b4",
+      "createdAt": "2026-02-22T06:52:02.665Z",
+      "username": "skrmc@2013",
+      "event": "LOGIN_SUCCESS"
+    },
+    {
+      "id": "3a27b494-ba37-41f7-98ef-787f2a0b4331",
+      "createdAt": "2026-02-22T06:52:22.217Z",
+      "username": "skrmc@2013",
+      "event": "PASSWORD_RESET_RECOVERY"
+    },
+    {
+      "id": "25e8ac08-810a-4716-9b33-e15057e1f4bd",
+      "createdAt": "2026-02-22T06:52:27.136Z",
+      "username": "skrmc@2013",
+      "event": "LOGIN_FAILURE",
+      "metadata": {
+        "reason": "Invalid hash"
+      }
+    },
+    {
+      "id": "ca181191-8a08-4148-ab2d-3ef2a8cecd84",
+      "createdAt": "2026-02-22T06:52:34.419Z",
+      "username": "skrmc@2013",
+      "event": "LOGIN_FAILURE",
+      "metadata": {
+        "reason": "Invalid hash"
+      }
+    },
+    {
+      "id": "6222a1c8-b95b-4479-9a6d-f70d0352ac90",
+      "createdAt": "2026-02-22T06:52:40.862Z",
+      "username": "skrmc@2013",
+      "event": "LOGIN_FAILURE",
+      "metadata": {
+        "reason": "Invalid hash"
+      }
+    },
+    {
+      "id": "13d28045-12d5-4bda-bba2-739922f78dc7",
+      "createdAt": "2026-02-22T06:54:11.411Z",
+      "username": "skrmc@2013",
+      "event": "LOGIN_FAILURE",
+      "metadata": {
+        "reason": "Invalid hash"
+      }
+    },
+    {
+      "id": "dc40b9de-3ad9-4d59-98a9-693f2885b5f6",
+      "createdAt": "2026-02-22T07:10:37.481Z",
+      "username": "skrmc@2013",
+      "event": "REGISTRATION_SUCCESS"
+    },
+    {
+      "id": "ebb41acc-eed7-4b09-9d76-1a4239d9420f",
+      "createdAt": "2026-02-22T07:10:43.376Z",
+      "username": "skrmc@2013",
+      "event": "LOGIN_SUCCESS"
+    },
+    {
+      "id": "1069dcd7-beac-4d66-b3df-aa0de40f0776",
+      "createdAt": "2026-02-22T07:11:04.843Z",
+      "username": "skrmc@2013",
+      "event": "PASSWORD_RESET_RECOVERY"
+    },
+    {
+      "id": "5fda014e-b6bd-45f2-a28a-f88f03388b78",
+      "createdAt": "2026-02-22T07:11:11.021Z",
+      "username": "skrmc@2013",
+      "event": "LOGIN_FAILURE",
+      "metadata": {
+        "reason": "Invalid hash"
+      }
+    },
+    {
+      "id": "f1872505-2101-4d97-a163-4e690b95e87e",
+      "createdAt": "2026-02-22T07:11:18.192Z",
+      "username": "skrmc@2013",
+      "event": "LOGIN_SUCCESS"
+    },
+    {
+      "id": "a2bb9204-fed1-447f-93d2-1d7bf22f2991",
+      "createdAt": "2026-02-22T07:11:51.798Z",
+      "username": "skrmc@2013",
+      "event": "LOGIN_SUCCESS"
+    },
+    {
+      "id": "8fdef932-fbb5-45f4-88b9-bbdcd1fdf1a2",
+      "createdAt": "2026-02-22T07:12:17.178Z",
+      "username": "skrmc@2013",
+      "event": "PASSWORD_RESET_RECOVERY"
+    },
+    {
+      "id": "0ff5e54c-c32a-44a7-b8c3-3c22a46d619b",
+      "createdAt": "2026-02-22T07:12:21.089Z",
+      "username": "skrmc@2013",
+      "event": "LOGIN_SUCCESS"
+    },
+    {
+      "id": "2b5dc513-4812-4a49-8122-9c176463de9f",
+      "createdAt": "2026-02-22T07:12:26.085Z",
+      "username": "skrmc@2013",
+      "event": "LOGIN_SUCCESS"
+    },
+    {
+      "id": "21d7fb90-2972-4c86-8b20-85b1d25cf79b",
+      "createdAt": "2026-02-22T07:13:41.448Z",
+      "userId": "4ed3260e-b36d-4461-a1b8-8c7a2b41c0a2",
+      "action": "VAULT_CREATED",
+      "ipAddress": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+    },
+    {
+      "id": "86819143-0c54-4c9d-b8cd-ce21e79bc9fb",
+      "createdAt": "2026-02-22T07:17:56.419Z",
+      "username": "skrmc@2013",
+      "event": "LOGIN_SUCCESS"
+    },
+    {
+      "id": "7e41e86e-1bd9-4d30-b778-3efd4519394c",
+      "createdAt": "2026-02-22T07:19:49.842Z",
+      "username": "skrmc@2013",
+      "event": "LOGIN_SUCCESS"
+    },
+    {
+      "id": "0ba19020-0bd0-4d24-b982-9a4e44375037",
+      "createdAt": "2026-02-22T07:21:05.806Z",
+      "username": "skrmc@2013",
+      "event": "LOGIN_SUCCESS"
+    },
+    {
+      "id": "356dae05-2324-4977-9fe0-544e4e01c670",
+      "createdAt": "2026-02-26T03:35:42.499Z",
+      "username": "skrmc@2013",
+      "event": "LOGIN_FAILURE",
+      "metadata": {
+        "reason": "Invalid hash"
+      }
+    },
+    {
+      "id": "20404e70-8241-4cd5-8555-14c3d1a1d3dd",
+      "createdAt": "2026-02-26T03:35:55.184Z",
+      "username": "skrmc@2013",
+      "event": "LOGIN_FAILURE",
+      "metadata": {
+        "reason": "Invalid hash"
+      }
+    },
+    {
+      "id": "831bc141-e9fb-4e01-a728-ef11ba1d7617",
+      "createdAt": "2026-02-26T03:36:06.899Z",
+      "username": "skrmc@2013",
+      "event": "LOGIN_FAILURE",
+      "metadata": {
+        "reason": "Invalid hash"
+      }
+    },
+    {
+      "id": "848c4f01-2687-49e7-926a-870e766667fe",
+      "createdAt": "2026-02-26T03:36:49.070Z",
+      "username": "skrmc@2013",
+      "event": "REGISTRATION_SUCCESS"
+    },
+    {
+      "id": "1abc3988-731a-42ee-8239-4eac40a821ac",
+      "createdAt": "2026-02-26T03:36:58.752Z",
+      "username": "skrmc@2013",
+      "event": "LOGIN_SUCCESS"
+    },
+    {
+      "id": "bc156127-9c1a-49b9-8c8b-d445307265cb",
+      "createdAt": "2026-02-26T03:38:18.541Z",
+      "username": "skrmc@2013",
+      "event": "PASSWORD_RESET_RECOVERY"
+    },
+    {
+      "id": "6dffaf91-4d62-459e-8072-ae1d5f44761c",
+      "createdAt": "2026-02-26T03:38:27.286Z",
+      "username": "skrmc@2013",
+      "event": "LOGIN_FAILURE",
+      "metadata": {
+        "reason": "Invalid hash"
+      }
+    },
+    {
+      "id": "4dcd9973-174f-4045-8796-e0f4e27b6d88",
+      "createdAt": "2026-02-26T03:38:37.922Z",
+      "username": "skrmc@2013",
+      "event": "LOGIN_SUCCESS"
+    },
+    {
+      "id": "05cd7ce7-0e44-4165-b022-73783a856590",
+      "createdAt": "2026-02-26T03:40:22.518Z",
+      "username": "skrmc@2013",
+      "event": "2FA_ENABLED"
+    },
+    {
+      "id": "300dad4f-5082-427b-a9fc-1602b47507e9",
+      "createdAt": "2026-02-26T03:49:29.257Z",
+      "username": "skrmc@2013",
+      "event": "LOGIN_2FA_PENDING"
+    },
+    {
+      "id": "5f493e93-9b41-4385-9671-01e735d09c74",
+      "createdAt": "2026-02-26T03:50:03.769Z",
+      "username": "skrmc@2013",
+      "event": "LOGIN_SUCCESS_2FA"
+    },
+    {
+      "id": "9054e533-7de1-4ea1-989d-dda2537a7be0",
+      "createdAt": "2026-02-26T03:50:21.226Z",
+      "username": "skrmc@2013",
+      "event": "LOGIN_2FA_PENDING"
+    },
+    {
+      "id": "06fe2da0-4ab2-4ef3-94d8-a5ab609f0496",
+      "createdAt": "2026-02-26T03:50:42.375Z",
+      "username": "skrmc@2013",
+      "event": "LOGIN_SUCCESS_2FA"
+    },
+    {
+      "id": "cf5571df-8064-44f9-89d6-832731fe9e0a",
+      "createdAt": "2026-02-26T03:53:27.290Z",
+      "username": "skrmc@2013",
+      "event": "LOGIN_2FA_PENDING"
+    },
+    {
+      "id": "d3744978-cbf9-4a31-a07d-32afdf166118",
+      "createdAt": "2026-02-26T04:33:46.239Z",
+      "username": "skrmc@2013",
+      "event": "LOGIN_2FA_PENDING"
+    },
+    {
+      "id": "66ddb73a-a860-4275-a02e-405b889af659",
+      "createdAt": "2026-02-26T04:34:24.449Z",
+      "username": "skrmc@2013",
+      "event": "LOGIN_SUCCESS_2FA"
+    },
+    {
+      "id": "3bc63df6-838c-40e8-8b7c-26ebe9e53230",
+      "createdAt": "2026-02-26T04:35:39.122Z",
+      "username": "skrmc@2013",
+      "event": "LOGIN_TRUSTED_BYPASS"
+    },
+    {
+      "id": "fc98d1f8-cb63-4ebb-a74c-3506dbac0d4c",
+      "createdAt": "2026-02-26T04:35:39.156Z",
+      "username": "skrmc@2013",
+      "event": "LOGIN_SUCCESS"
+    },
+    {
+      "id": "1f40ff13-3ced-4190-ac4f-d190d09e3681",
+      "createdAt": "2026-02-26T04:36:22.408Z",
+      "username": "skrmc@2013",
+      "event": "LOGIN_TRUSTED_BYPASS"
+    },
+    {
+      "id": "be4479ba-7877-49d9-a616-fcf2cbc42471",
+      "createdAt": "2026-02-26T04:36:22.445Z",
+      "username": "skrmc@2013",
+      "event": "LOGIN_SUCCESS"
+    },
+    {
+      "id": "b8a4e4e9-3549-48bd-9bc1-e11797db2a35",
+      "createdAt": "2026-02-26T04:36:34.729Z",
+      "username": "68e3eb37-0690-47d2-a312-e5ce371c1197",
+      "event": "DEVICE_TRUST_REVOKED",
+      "metadata": {
+        "device": "Browser Instance"
+      }
+    },
+    {
+      "id": "f2499d0e-2702-47c1-915f-920fb49049be",
+      "createdAt": "2026-02-26T04:36:48.474Z",
+      "username": "skrmc@2013",
+      "event": "LOGIN_FAILURE",
+      "metadata": {
+        "reason": "Invalid hash"
+      }
+    },
+    {
+      "id": "4c2a178e-f281-4d71-99e0-d2c07e06fb12",
+      "createdAt": "2026-02-26T04:36:59.394Z",
+      "username": "skrmc@2013",
+      "event": "LOGIN_2FA_PENDING"
+    },
+    {
+      "id": "f668b021-2887-4c89-86d7-64f37b64f95e",
+      "createdAt": "2026-02-26T08:38:23.846Z",
+      "username": "skrmc@2013",
+      "event": "REGISTRATION_SUCCESS"
+    },
+    {
+      "id": "9d1fa7a4-9f26-4325-bca0-a6c83e8c72e7",
+      "createdAt": "2026-02-26T08:38:29.786Z",
+      "username": "skrmc@2013",
+      "event": "LOGIN_SUCCESS"
+    },
+    {
+      "id": "7379fd8c-2c7e-4f2b-8ffa-31e4e59e7d3b",
+      "createdAt": "2026-02-26T18:07:52.754Z",
+      "username": "skrmc@2013",
+      "event": "LOGIN_SUCCESS"
+    },
+    {
+      "id": "e508fd91-0afc-46f8-ade6-4a1bdf59e33e",
+      "createdAt": "2026-02-26T18:08:53.652Z",
+      "username": "skrmc@20131",
+      "event": "REGISTRATION_SUCCESS"
+    },
+    {
+      "id": "79a6ebdd-82dc-4e1f-be8c-5fc71e0b2b51",
+      "createdAt": "2026-02-26T18:09:03.368Z",
+      "username": "skrmc@20131",
+      "event": "LOGIN_SUCCESS"
+    },
+    {
+      "id": "03926349-5599-43af-9ec7-7326b5a81cfe",
+      "createdAt": "2026-02-26T18:30:00.698Z",
+      "username": "skrmc@201311",
+      "event": "REGISTRATION_SUCCESS"
+    },
+    {
+      "id": "84edc4fa-954e-4a40-9315-65ff6e3b1ff5",
+      "createdAt": "2026-02-26T18:30:08.178Z",
+      "username": "skrmc@20131",
+      "event": "LOGIN_SUCCESS"
+    },
+    {
+      "id": "708307be-33d4-4f92-b74e-ab0d45fc923b",
+      "createdAt": "2026-02-26T18:30:18.878Z",
+      "username": "skrmc@201311",
+      "event": "LOGIN_SUCCESS"
+    },
+    {
+      "id": "3ddc57a1-d2ca-40a6-96a1-0a9900654241",
+      "createdAt": "2026-02-26T19:24:12.248Z",
+      "username": "skrmc@201311",
+      "event": "LOGIN_SUCCESS"
+    },
+    {
+      "id": "186e15ab-e019-4ca6-a7e1-8f5d6f6966a7",
+      "createdAt": "2026-02-28T17:13:11.928Z",
+      "username": "skrmc@201311",
+      "event": "LOGIN_SUCCESS"
+    },
+    {
+      "id": "620b1a2c-4750-416a-a95d-f31c294bd756",
+      "createdAt": "2026-02-28T17:16:45.924Z",
+      "username": "skrmc@201311",
+      "event": "LOGIN_SUCCESS"
+    },
+    {
+      "id": "0e5e7c51-568e-48de-827a-572a51e26eb9",
+      "createdAt": "2026-02-28T17:54:45.599Z",
+      "username": "skrmc@201311",
+      "event": "LOGIN_SUCCESS"
+    },
+    {
+      "id": "202d9dfb-de2c-40c0-a0f3-0b84ea2dd1ce",
+      "createdAt": "2026-02-28T18:12:42.187Z",
+      "username": "skrmc@201311",
+      "event": "LOGIN_SUCCESS"
+    },
+    {
+      "id": "21e57ade-cc4a-4de2-a392-3fa67df28953",
+      "createdAt": "2026-02-28T18:12:49.721Z",
+      "username": "skrmc@201311",
+      "event": "PASSKEY_REVOKED"
+    },
+    {
+      "id": "7518bf19-527d-4f04-b4d6-6f7f3538b1d1",
+      "createdAt": "2026-02-28T18:22:20.220Z",
+      "username": "skrmc@201311",
+      "event": "LOGIN_SUCCESS"
+    },
+    {
+      "id": "b76b7396-74b3-4143-a0e9-c43a2805bac1",
+      "createdAt": "2026-02-28T18:23:40.220Z",
+      "username": "skrmc@201311",
+      "event": "ACCOUNT_DELETED",
+      "metadata": {
+        "method": "confirm_modal"
+      }
+    },
+    {
+      "id": "e4ecdbd9-d4e2-44ad-b9d7-c7707ce53a04",
+      "createdAt": "2026-02-28T18:24:15.581Z",
+      "username": "skrmc@201311",
+      "event": "REGISTRATION_SUCCESS"
+    },
+    {
+      "id": "26c0a163-f1fd-4e01-990f-1193b9cd3c89",
+      "createdAt": "2026-02-28T18:24:27.611Z",
+      "username": "skrmc@201311",
+      "event": "LOGIN_SUCCESS"
     }
   ],
-  "trustTokens": []
+  "trustTokens": [],
+  "passkeys": [
+    {
+      "id": "40af45af-e01f-439e-aab1-f4afb39aebc2",
+      "userId": "68e3eb37-0690-47d2-a312-e5ce371c1197",
+      "credentialId": "5q47JYtdTQZezt9EYHV3Aw",
+      "publicKey": "pQECAyYgASFYIJjjBldjjMQ7MUF5Zoxxik1/5Lzks99959Hcd7vVQkpfIlggUZ4k6zgqABJSFb95g0pIlFqgLZrtUo+et5TOepxW4tg=",
+      "counter": 0,
+      "deviceType": "multiDevice",
+      "backedUp": true,
+      "transports": "hybrid,internal",
+      "wrappedKey": null,
+      "createdAt": "2026-02-26T04:35:23.171Z"
+    },
+    {
+      "id": "9d852a7f-5f31-4266-b09d-1fa74532f419",
+      "userId": "c1946f8a-0556-47dc-95d9-cf8b019d9d37",
+      "credentialId": "l2Csz5ITHxRcqJDdMuSkZw",
+      "publicKey": "pQECAyYgASFYIOcsEnr0aRnmOD04rbeSfnpIEvQVd0bbAiB69jP5gtycIlggc3PfzrzYBhztAaABrRO1qiDnr0a/KDlUV1yruzyyxMg=",
+      "counter": 0,
+      "deviceType": "multiDevice",
+      "backedUp": true,
+      "transports": "hybrid,internal",
+      "wrappedKey": null,
+      "createdAt": "2026-02-26T08:39:32.340Z"
+    },
+    {
+      "id": "929c5fea-5837-4699-bc74-42ded246de3c",
+      "userId": "bd9bf1c3-ce5d-4eb7-9df1-9644b60362c4",
+      "credentialId": "oBZq5wPZAVN55yQleYkAxg",
+      "publicKey": "pQECAyYgASFYIP7J1pJHXUnZAbop8Xs3OL6sQYQCqewOyE5OsJEOw5ePIlggKn4F41AKCbwsE/3LhC9uL7ou76yWNEjKZ0H0U1b7rAs=",
+      "counter": 0,
+      "deviceType": "multiDevice",
+      "backedUp": true,
+      "transports": "hybrid,internal",
+      "wrappedKey": null,
+      "createdAt": "2026-02-26T18:09:33.993Z"
+    }
+  ]
 }

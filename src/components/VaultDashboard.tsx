@@ -6,7 +6,7 @@ import {
     Loader2, Plus, Lock, Globe, Eye, EyeOff, Copy, Trash2, Edit,
     LogOut, Settings, User, ShieldCheck, ShieldAlert, RefreshCw,
     Check, X, Download, ChevronRight, Search, LayoutGrid, List,
-    History, Clock, RotateCcw, Zap, Menu
+    History, Clock, RotateCcw, Zap, Menu, Landmark, CreditCard
 } from 'lucide-react';
 import VerifyModal from './VerifyModal';
 import { clsx } from 'clsx';
@@ -43,6 +43,19 @@ export default function VaultDashboard({ session, onLogout, onOpenSettings }: Pr
     const [category, setCategory] = useState('General');
     const [notes, setNotes] = useState('');
     const [tags, setTags] = useState('');
+    const [recordType, setRecordType] = useState<'LOGIN' | 'BANK' | 'CARD'>('LOGIN');
+
+    // Bank Specific
+    const [bankName, setBankName] = useState('');
+    const [accountNumber, setAccountNumber] = useState('');
+    const [iban, setIban] = useState('');
+    const [swift, setSwift] = useState('');
+
+    // Card Specific
+    const [cardNumber, setCardNumber] = useState('');
+    const [cardExpiry, setCardExpiry] = useState('');
+    const [cvv, setCvv] = useState('');
+    const [pin, setPin] = useState('');
     const [showFormPassword, setShowFormPassword] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
     const [formError, setFormError] = useState<string | null>(null);
@@ -52,6 +65,8 @@ export default function VaultDashboard({ session, onLogout, onOpenSettings }: Pr
     const [policyTimeEnd, setPolicyTimeEnd] = useState('17:00');
     const [policyAutoWipe, setPolicyAutoWipe] = useState(false);
     const [policyLockedUntil, setPolicyLockedUntil] = useState('');
+    const [isHoneyToken, setIsHoneyToken] = useState(false);
+    const [heartbeat, setHeartbeat] = useState(0);
 
     const strength = getPasswordStrength(password);
 
@@ -69,6 +84,8 @@ export default function VaultDashboard({ session, onLogout, onOpenSettings }: Pr
 
     useEffect(() => {
         fetchVaults();
+        const interval = setInterval(() => setHeartbeat(h => h + 1), 30000);
+        return () => clearInterval(interval);
     }, []);
 
     useEffect(() => {
@@ -76,6 +93,22 @@ export default function VaultDashboard({ session, onLogout, onOpenSettings }: Pr
             fetchItems();
         }
     }, [activeVaultId, vaults]);
+
+    useEffect(() => {
+        if (heartbeat > 0) {
+            // Periodic Security Check
+            fetch('/api/auth/status', {
+                headers: { 'Authorization': `Bearer ${session.token}` }
+            })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.isLockedDown) {
+                        CryptoService.setLockdown(true);
+                    }
+                })
+                .catch(err => console.error('Security heartbeat failure:', err));
+        }
+    }, [heartbeat]);
 
     const fetchVaults = async () => {
         try {
@@ -92,6 +125,25 @@ export default function VaultDashboard({ session, onLogout, onOpenSettings }: Pr
             showToast('Intelligence failure: Could not retrieve vault structures.', 'error');
             console.error('Failed to fetch vaults', err);
             setVaults([]);
+        }
+    };
+
+    const reportThreat = async (event: string, details: any = {}, severity = 1) => {
+        try {
+            const res = await fetch('/api/threat/report', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${session.token}`
+                },
+                body: JSON.stringify({ event, details, severity })
+            });
+            const data = await res.json();
+            if (data.isLockedDown) {
+                CryptoService.setLockdown(true);
+            }
+        } catch (err) {
+            console.error('Failed to report threat:', err);
         }
     };
 
@@ -237,13 +289,25 @@ export default function VaultDashboard({ session, onLogout, onOpenSettings }: Pr
                 versionDate: editingItem.updatedAt || new Date().toISOString()
             } : null;
 
-            const bundle = {
+            // Bundle all metadata for zero-knowledge storage
+            const bundle: any = {
                 site,
                 username,
                 password,
-                category,
+                category, // Keep category for now, might be removed later if fully dynamic
                 notes,
-                tags, // Included in the encrypted bubble
+                tags,
+                recordType,
+                // Bank fields
+                bankName,
+                accountNumber,
+                iban,
+                swift,
+                // Card fields
+                cardNumber,
+                cardExpiry,
+                cvv,
+                pin,
                 policy: {
                     requireAuth: policyRequireAuth,
                     timeLock: policyTimeLock ? { start: policyTimeStart, end: policyTimeEnd } : null,
@@ -270,7 +334,8 @@ export default function VaultDashboard({ session, onLogout, onOpenSettings }: Pr
                     encryptedData,
                     iv,
                     vaultId: targetVaultId,
-                    blindIndex // Send the searchable (but secured) index
+                    blindIndex, // Send the searchable (but secured) index
+                    isHoneyToken // Flag as decoy
                 }),
             });
 
@@ -367,18 +432,30 @@ export default function VaultDashboard({ session, onLogout, onOpenSettings }: Pr
         setCategory('General');
         setNotes('');
         setTags('');
+        setEditingItem(null);
+        setFormError(null);
         setShowFormPassword(false);
         setPolicyRequireAuth(false);
         setPolicyTimeLock(false);
         setPolicyAutoWipe(false);
         setPolicyLockedUntil('');
+        setIsHoneyToken(false);
+        setRecordType('LOGIN');
+        setBankName('');
+        setAccountNumber('');
+        setIban('');
+        setSwift('');
+        setCardNumber('');
+        setCardExpiry('');
+        setCvv('');
+        setPin('');
     };
 
     const handleEdit = (item: any) => {
         setEditingItem(item);
         setSite(item.site);
-        setUsername(item.username);
-        setPassword(item.password);
+        setUsername(item.username || '');
+        setPassword(item.password || '');
         setCategory(item.category || 'General');
         setNotes(item.notes || '');
         setTags(item.tags || '');
@@ -388,6 +465,19 @@ export default function VaultDashboard({ session, onLogout, onOpenSettings }: Pr
         setPolicyTimeEnd(item.policy?.timeLock?.end || '17:00');
         setPolicyAutoWipe(item.policy?.autoWipe || false);
         setPolicyLockedUntil(item.policy?.lockedUntil || '');
+        setIsHoneyToken(!!item.isHoneyToken);
+
+        // Specialized types
+        setRecordType(item.recordType || 'LOGIN');
+        setBankName(item.bankName || '');
+        setAccountNumber(item.accountNumber || '');
+        setIban(item.iban || '');
+        setSwift(item.swift || '');
+        setCardNumber(item.cardNumber || '');
+        setCardExpiry(item.cardExpiry || '');
+        setCvv(item.cvv || '');
+        setPin(item.pin || '');
+
         setShowAddModal(true);
     };
 
@@ -404,15 +494,16 @@ export default function VaultDashboard({ session, onLogout, onOpenSettings }: Pr
     };
 
     const checkPolicyAccess = (item: any, action: 'view' | 'copy') => {
-        const now = new Date();
+        const nowEpoch = Date.now();
 
         // 1. FUTURE UNLOCK CHECK (One-time)
         if (item.policy?.lockedUntil) {
-            const unlockDate = new Date(item.policy.lockedUntil);
-            if (now < unlockDate) {
-                const diff = unlockDate.getTime() - now.getTime();
+            const unlockEpoch = new Date(item.policy.lockedUntil).getTime();
+
+            if (!isNaN(unlockEpoch) && nowEpoch < unlockEpoch) {
+                const diff = unlockEpoch - nowEpoch;
                 const hours = Math.floor(diff / (1000 * 60 * 60));
-                const mins = Math.round((diff % (1000 * 60 * 60)) / (1000 * 60));
+                const mins = Math.max(1, Math.round((diff % (1000 * 60 * 60)) / (1000 * 60)));
 
                 let timeMsg = `${mins}m`;
                 if (hours > 0) timeMsg = `${hours}h ${mins}m`;
@@ -425,6 +516,7 @@ export default function VaultDashboard({ session, onLogout, onOpenSettings }: Pr
 
         // 2. TIME LOCK CHECK (Daily Window)
         if (item.policy?.timeLock) {
+            const now = new Date();
             const currentTimeStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
             const { start, end } = item.policy.timeLock;
 
@@ -433,12 +525,28 @@ export default function VaultDashboard({ session, onLogout, onOpenSettings }: Pr
                 return false;
             }
         }
-
         return true;
+    };
+
+    const handleView = (item: any) => {
+        if (!checkPolicyAccess(item, 'view')) return;
+
+        // 🛡️ Honey-token Detection
+        if (item.isHoneyToken) {
+            reportThreat('HONEY_TOKEN_VIEW', { itemId: item.id, site: item.site }, 1);
+        }
+
+        return true; // Used by VerifyModal to proceed
     };
 
     const handleCopy = (item: any) => {
         if (!checkPolicyAccess(item, 'copy')) return;
+
+        // 🛡️ Honey-token Detection
+        if (item.isHoneyToken) {
+            reportThreat('HONEY_TOKEN_EXFILTRATION', { itemId: item.id, site: item.site }, 2);
+            // We still "succeed" visually but return junk if lockdown triggered
+        }
 
         navigator.clipboard.writeText(item.password);
         showToast('Sequence exfiltrated to clipboard.', 'success');
@@ -451,6 +559,7 @@ export default function VaultDashboard({ session, onLogout, onOpenSettings }: Pr
             }, 30000);
         }
     };
+
     const containerVariants = {
         hidden: { opacity: 0 },
         visible: {
@@ -463,7 +572,6 @@ export default function VaultDashboard({ session, onLogout, onOpenSettings }: Pr
         hidden: { opacity: 0, y: 10 },
         visible: { opacity: 1, y: 0 }
     };
-
 
     const activeVault = (vaults || []).find(v => v.id === activeVaultId);
 
@@ -719,11 +827,22 @@ export default function VaultDashboard({ session, onLogout, onOpenSettings }: Pr
                                                 "w-10 h-10 rounded-2xl flex items-center justify-center border transition-all duration-500",
                                                 selectedIds.has(item.id) ? "bg-blue-500/20 border-blue-500/30 shadow-[0_0_15px_rgba(59,130,246,0.2)]" : "bg-slate-900 border-slate-800 group-hover:border-blue-500/30"
                                             )}>
-                                                <Globe className={clsx("w-5 h-5 transition-colors", selectedIds.has(item.id) ? "text-blue-400" : "text-slate-500 group-hover:text-blue-400")} />
+                                                {item.recordType === 'BANK' ? (
+                                                    <Landmark className={clsx("w-5 h-5 transition-colors", selectedIds.has(item.id) ? "text-blue-400" : "text-slate-500 group-hover:text-blue-400")} />
+                                                ) : item.recordType === 'CARD' ? (
+                                                    <CreditCard className={clsx("w-5 h-5 transition-colors", selectedIds.has(item.id) ? "text-blue-400" : "text-slate-500 group-hover:text-blue-400")} />
+                                                ) : (
+                                                    <Globe className={clsx("w-5 h-5 transition-colors", selectedIds.has(item.id) ? "text-blue-400" : "text-slate-500 group-hover:text-blue-400")} />
+                                                )}
                                             </div>
                                             <div className="flex flex-col min-w-0 pr-6">
                                                 <span className="text-[13px] font-black text-white uppercase tracking-wider truncate mb-0.5">{item.site}</span>
-                                                <span className="text-[10px] font-bold text-slate-500 truncate tracking-tight">{item.username}</span>
+                                                <span className="text-[10px] font-bold text-slate-500 truncate tracking-tight">
+                                                    {item.recordType === 'LOGIN' ? item.username :
+                                                        item.recordType === 'BANK' ? (item.iban || item.accountNumber || item.username) :
+                                                            item.recordType === 'CARD' ? (item.cardNumber ? `•••• ${item.cardNumber.slice(-4)}` : item.username) :
+                                                                item.username}
+                                                </span>
                                             </div>
                                         </div>
                                     </div>
@@ -756,10 +875,10 @@ export default function VaultDashboard({ session, onLogout, onOpenSettings }: Pr
                                             </div>
                                         )}
 
-                                        {item.policy?.lockedUntil && new Date() < new Date(item.policy.lockedUntil) && (
+                                        {item.policy?.lockedUntil && Date.now() < new Date(item.policy.lockedUntil).getTime() && (
                                             <div className="flex items-center gap-1 px-2 py-0.5 bg-rose-500/10 border border-rose-500/20 rounded-md" title={`Locked Until: ${new Date(item.policy.lockedUntil).toLocaleString()}`}>
                                                 <Lock className="w-2.5 h-2.5 text-rose-500" />
-                                                <span className="text-[7px] font-black text-rose-500 uppercase tracking-tighter">LOCKED UNTIL {new Date(item.policy.lockedUntil).toLocaleDateString()}</span>
+                                                <span className="text-[7px] font-black text-rose-500 uppercase tracking-tighter">LOCKED UNTIL {new Date(item.policy.lockedUntil).toLocaleString()}</span>
                                             </div>
                                         )}
 
@@ -774,25 +893,32 @@ export default function VaultDashboard({ session, onLogout, onOpenSettings }: Pr
                                         <div className="flex-1">
                                             <VerifyModal
                                                 actionLabel="Unlock"
+                                                userSalt={session.salt}
                                                 forceVerify={item.policy?.requireAuth}
                                                 onVerified={() => {
                                                     if (checkPolicyAccess(item, 'view')) {
-                                                        showToast(`Password for ${item.site}: ${item.password}`, 'info');
+                                                        if (item.recordType === 'BANK') {
+                                                            showToast(`Access Key for ${item.site}: ${item.password || 'None Set'}`, 'info');
+                                                        } else if (item.recordType === 'CARD') {
+                                                            showToast(`ATM PIN for ${item.site}: ${item.pin || 'None Set'}`, 'info');
+                                                        } else {
+                                                            showToast(`Sequence for ${item.site}: ${item.password}`, 'info');
+                                                        }
                                                     }
                                                 }}
                                                 session={session}
                                             >
                                                 <button
-                                                    disabled={item.policy?.lockedUntil && new Date() < new Date(item.policy.lockedUntil)}
+                                                    disabled={item.policy?.lockedUntil && Date.now() < new Date(item.policy.lockedUntil).getTime()}
                                                     className={clsx(
                                                         "w-full flex items-center justify-center gap-2 py-2 border rounded-xl text-[9px] font-black uppercase tracking-widest transition-all",
-                                                        (item.policy?.lockedUntil && new Date() < new Date(item.policy.lockedUntil))
+                                                        (item.policy?.lockedUntil && Date.now() < new Date(item.policy.lockedUntil).getTime())
                                                             ? "bg-slate-900/20 border-slate-900 text-slate-700 cursor-not-allowed opacity-50"
                                                             : "bg-slate-900/50 hover:bg-blue-500/10 border-slate-800 hover:border-blue-500/20 text-slate-400 hover:text-blue-400"
                                                     )}
                                                 >
-                                                    {item.policy?.lockedUntil && new Date() < new Date(item.policy.lockedUntil) ? <Lock className="w-3 h-3" /> : <Eye className="w-3 h-3" />}
-                                                    {item.policy?.lockedUntil && new Date() < new Date(item.policy.lockedUntil) ? 'Locked' : 'View'}
+                                                    {item.policy?.lockedUntil && Date.now() < new Date(item.policy.lockedUntil).getTime() ? <Lock className="w-3 h-3" /> : <Eye className="w-3 h-3" />}
+                                                    {item.policy?.lockedUntil && Date.now() < new Date(item.policy.lockedUntil).getTime() ? 'Locked' : 'View'}
                                                 </button>
                                             </VerifyModal>
                                         </div>
@@ -800,15 +926,16 @@ export default function VaultDashboard({ session, onLogout, onOpenSettings }: Pr
                                         <div className="flex-1">
                                             <VerifyModal
                                                 actionLabel="Exfiltrate"
+                                                userSalt={session.salt}
                                                 forceVerify={item.policy?.requireAuth}
                                                 onVerified={() => handleCopy(item)}
                                                 session={session}
                                             >
                                                 <button
-                                                    disabled={item.policy?.lockedUntil && new Date() < new Date(item.policy.lockedUntil)}
+                                                    disabled={item.policy?.lockedUntil && Date.now() < new Date(item.policy.lockedUntil).getTime()}
                                                     className={clsx(
                                                         "w-full flex items-center justify-center gap-2 py-2 border rounded-xl text-[9px] font-black uppercase tracking-widest transition-all",
-                                                        (item.policy?.lockedUntil && new Date() < new Date(item.policy.lockedUntil))
+                                                        (item.policy?.lockedUntil && Date.now() < new Date(item.policy.lockedUntil).getTime())
                                                             ? "bg-slate-900/20 border-slate-900 text-slate-700 cursor-not-allowed opacity-50"
                                                             : "bg-slate-900/50 hover:bg-emerald-500/10 border-slate-800 hover:border-emerald-500/20 text-slate-400 hover:text-emerald-400"
                                                     )}
@@ -918,41 +1045,117 @@ export default function VaultDashboard({ session, onLogout, onOpenSettings }: Pr
 
                             <form onSubmit={handleSaveItem} className="flex-1 flex flex-col min-h-0">
                                 <div className="flex-1 overflow-y-auto px-1 space-y-4 mb-4 scrollbar-thin scrollbar-thumb-slate-800">
+                                    {/* Record Type Selector */}
+                                    <div className="flex gap-1 bg-black/40 p-1 rounded-xl border border-slate-800">
+                                        {(['LOGIN', 'BANK', 'CARD'] as const).map((type) => (
+                                            <button
+                                                key={type}
+                                                type="button"
+                                                onClick={() => setRecordType(type)}
+                                                className={clsx(
+                                                    "flex-1 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all",
+                                                    recordType === type ? "bg-blue-600 text-white shadow-lg" : "text-slate-500 hover:text-slate-300 hover:bg-white/5"
+                                                )}
+                                            >
+                                                {type}
+                                            </button>
+                                        ))}
+                                    </div>
+
                                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                        <div>
-                                            <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1.5 ml-1">Domain / Site</label>
-                                            <input value={site} onChange={(e) => setSite(e.target.value)} list="site-suggestions" className="w-full p-3 bg-black/40 border border-slate-800 rounded-xl focus:border-blue-500/50 outline-none text-white text-xs font-bold transition-all" placeholder="e.g. ProtonMail" required />
-                                            <datalist id="site-suggestions">
-                                                <option value="Google" /><option value="Microsoft" /><option value="GitHub" /><option value="Amazon" /><option value="Apple" /><option value="Netflix" /><option value="Spotify" />
-                                            </datalist>
-                                        </div>
-                                        <div>
-                                            <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1.5 ml-1">Category</label>
-                                            <select value={category} onChange={(e) => setCategory(e.target.value)} className="w-full p-3 bg-black/40 border border-slate-800 rounded-xl focus:border-blue-500/50 outline-none text-white text-xs font-bold transition-all">
-                                                <option value="General">General</option><option value="Personal">Personal</option><option value="Work">Work</option><option value="Finance">Finance</option><option value="Social">Social</option>
-                                            </select>
+                                        <div className="sm:col-span-2">
+                                            <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1.5 ml-1">
+                                                {recordType === 'LOGIN' ? 'Domain / Site' : recordType === 'BANK' ? 'Bank / Institution' : 'Card Provider'}
+                                            </label>
+                                            <input value={site} onChange={(e) => setSite(e.target.value)} list="site-suggestions" className="w-full p-3 bg-black/40 border border-slate-800 rounded-xl focus:border-blue-500/50 outline-none text-white text-xs font-bold transition-all" placeholder={recordType === 'LOGIN' ? "e.g. ProtonMail" : recordType === 'BANK' ? "e.g. Chase Bank" : "e.g. Visa Platinum"} required />
+                                            {recordType === 'LOGIN' && (
+                                                <datalist id="site-suggestions">
+                                                    <option value="Google" /><option value="Microsoft" /><option value="GitHub" /><option value="Amazon" /><option value="Apple" /><option value="Netflix" /><option value="Spotify" />
+                                                </datalist>
+                                            )}
                                         </div>
                                     </div>
 
-                                    <div>
-                                        <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1.5 ml-1">Verified Identity (Username/Email)</label>
-                                        <input value={username} onChange={(e) => setUsername(e.target.value)} className="w-full p-3 bg-black/40 border border-slate-800 rounded-xl focus:border-blue-500/50 outline-none text-white text-xs font-bold transition-all" placeholder="operator@domain.com" required />
-                                    </div>
+                                    {recordType === 'LOGIN' && (
+                                        <motion.div initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }} className="space-y-4">
+                                            <div>
+                                                <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1.5 ml-1">Verified Identity (Username/Email)</label>
+                                                <input value={username} onChange={(e) => setUsername(e.target.value)} className="w-full p-3 bg-black/40 border border-slate-800 rounded-xl focus:border-blue-500/50 outline-none text-white text-xs font-bold transition-all" placeholder="operator@domain.com" required />
+                                            </div>
 
-                                    <div>
-                                        <div className="flex justify-between items-center mb-1.5 px-1">
-                                            <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest">Secret Sequence</label>
-                                            <button type="button" onClick={async () => setPassword(await generateSecurePassword(24))} className="text-[9px] font-black text-blue-500 hover:text-blue-400 uppercase tracking-widest flex items-center gap-1 transition-colors">
-                                                <RefreshCw className="w-2.5 h-2.5" /> High-Entropy Gen
-                                            </button>
-                                        </div>
-                                        <div className="relative">
-                                            <input type={showFormPassword ? "text" : "password"} value={password} onChange={(e) => setPassword(e.target.value)} className="w-full p-3 bg-black/40 border border-slate-800 rounded-xl focus:border-blue-500/50 outline-none text-white text-xs font-mono transition-all" placeholder="••••••••••••" required />
-                                            <button type="button" onClick={() => setShowFormPassword(!showFormPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-600 hover:text-blue-500">
-                                                {showFormPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                                            </button>
-                                        </div>
-                                    </div>
+                                            <div>
+                                                <div className="flex justify-between items-center mb-1.5 px-1">
+                                                    <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest">Secret Sequence</label>
+                                                    <button type="button" onClick={async () => setPassword(await generateSecurePassword(24))} className="text-[9px] font-black text-blue-500 hover:text-blue-400 uppercase tracking-widest flex items-center gap-1 transition-colors">
+                                                        <RefreshCw className="w-2.5 h-2.5" /> High-Entropy Gen
+                                                    </button>
+                                                </div>
+                                                <div className="relative">
+                                                    <input type={showFormPassword ? "text" : "password"} value={password} onChange={(e) => setPassword(e.target.value)} className="w-full p-3 bg-black/40 border border-slate-800 rounded-xl focus:border-blue-500/50 outline-none text-white text-xs font-mono transition-all" placeholder="••••••••••••" required />
+                                                    <button type="button" onClick={() => setShowFormPassword(!showFormPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-600 hover:text-blue-500">
+                                                        {showFormPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </motion.div>
+                                    )}
+
+                                    {recordType === 'BANK' && (
+                                        <motion.div initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }} className="space-y-4">
+                                            <div>
+                                                <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1.5 ml-1">Account Holder Name</label>
+                                                <input value={username} onChange={(e) => setUsername(e.target.value)} className="w-full p-3 bg-black/40 border border-slate-800 rounded-xl focus:border-blue-500/50 outline-none text-white text-xs font-bold transition-all" placeholder="Full Name" required />
+                                            </div>
+                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                                <div>
+                                                    <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1.5 ml-1">Account Number</label>
+                                                    <input value={accountNumber} onChange={(e) => setAccountNumber(e.target.value)} className="w-full p-3 bg-black/40 border border-slate-800 rounded-xl focus:border-blue-500/50 outline-none text-white text-xs font-mono transition-all" placeholder="0000000000" />
+                                                </div>
+                                                <div>
+                                                    <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1.5 ml-1">IBAN</label>
+                                                    <input value={iban} onChange={(e) => setIban(e.target.value)} className="w-full p-3 bg-black/40 border border-slate-800 rounded-xl focus:border-blue-500/50 outline-none text-white text-xs font-mono transition-all" placeholder="GB00..." />
+                                                </div>
+                                            </div>
+                                            <div>
+                                                <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1.5 ml-1">Swift / BIC</label>
+                                                <input value={swift} onChange={(e) => setSwift(e.target.value)} className="w-full p-3 bg-black/40 border border-slate-800 rounded-xl focus:border-blue-500/50 outline-none text-white text-xs font-mono transition-all" placeholder="BIC CODE" />
+                                            </div>
+                                            <div className="relative">
+                                                <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1.5 ml-1">Online Access Secret</label>
+                                                <input type={showFormPassword ? "text" : "password"} value={password} onChange={(e) => setPassword(e.target.value)} className="w-full p-3 bg-black/40 border border-slate-800 rounded-xl focus:border-blue-500/50 outline-none text-white text-xs font-mono transition-all" placeholder="Web Portal Password" />
+                                                <button type="button" onClick={() => setShowFormPassword(!showFormPassword)} className="absolute right-3 top-[calc(100%-1.6rem)] text-slate-600 hover:text-blue-500">
+                                                    {showFormPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                                                </button>
+                                            </div>
+                                        </motion.div>
+                                    )}
+
+                                    {recordType === 'CARD' && (
+                                        <motion.div initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }} className="space-y-4">
+                                            <div>
+                                                <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1.5 ml-1">Cardholder Name</label>
+                                                <input value={username} onChange={(e) => setUsername(e.target.value)} className="w-full p-3 bg-black/40 border border-slate-800 rounded-xl focus:border-blue-500/50 outline-none text-white text-xs font-bold transition-all" placeholder="Full Name" required />
+                                            </div>
+                                            <div>
+                                                <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1.5 ml-1">Card Number</label>
+                                                <input value={cardNumber} onChange={(e) => setCardNumber(e.target.value.replace(/\D/g, '').replace(/(.{4})/g, '$1 ').trim())} maxLength={19} className="w-full p-3 bg-black/40 border border-slate-800 rounded-xl focus:border-blue-500/50 outline-none text-white text-xs font-mono transition-all" placeholder="0000 0000 0000 0000" />
+                                            </div>
+                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                                <div>
+                                                    <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1.5 ml-1">Expiry (MM/YY)</label>
+                                                    <input value={cardExpiry} onChange={(e) => setCardExpiry(e.target.value)} className="w-full p-3 bg-black/40 border border-slate-800 rounded-xl focus:border-blue-500/50 outline-none text-white text-xs font-mono transition-all" placeholder="MM/YY" />
+                                                </div>
+                                                <div>
+                                                    <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1.5 ml-1">CVV</label>
+                                                    <input value={cvv} onChange={(e) => setCvv(e.target.value)} className="w-full p-3 bg-black/40 border border-slate-800 rounded-xl focus:border-blue-500/50 outline-none text-white text-xs font-mono transition-all" placeholder="000" />
+                                                </div>
+                                            </div>
+                                            <div>
+                                                <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1.5 ml-1">ATM / Physical PIN</label>
+                                                <input type={showFormPassword ? "text" : "password"} value={pin} onChange={(e) => setPin(e.target.value)} className="w-full p-3 bg-black/40 border border-slate-800 rounded-xl focus:border-blue-500/50 outline-none text-white text-xs font-mono transition-all" placeholder="0000" />
+                                            </div>
+                                        </motion.div>
+                                    )}
 
                                     <div>
                                         <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1.5 ml-1">Security Notes (Optional)</label>
@@ -984,8 +1187,16 @@ export default function VaultDashboard({ session, onLogout, onOpenSettings }: Pr
 
                                             <div className="space-y-2">
                                                 <label className="flex items-center justify-between p-2 hover:bg-white/5 rounded-lg cursor-pointer transition-colors group">
-                                                    <span className="text-[9px] font-bold text-slate-400 group-hover:text-slate-200 uppercase tracking-tight">Time-Locked Access Window</span>
+                                                    <span className="text-[9px] font-bold text-slate-400 group-hover:text-slate-200 uppercase tracking-tight">Daily Access Window (Periodic Release)</span>
                                                     <input type="checkbox" checked={policyTimeLock} onChange={(e) => setPolicyTimeLock(e.target.checked)} className="w-3.5 h-3.5 rounded border-slate-700 bg-slate-900 text-blue-500 focus:ring-blue-500/50" />
+                                                </label>
+
+                                                <label className="flex items-center justify-between p-2 hover:bg-red-500/5 rounded-lg cursor-pointer transition-colors group">
+                                                    <div className="flex flex-col">
+                                                        <span className="text-[9px] font-black text-red-500/70 group-hover:text-red-400 uppercase tracking-tight">Active Decoy (Honey-Token)</span>
+                                                        <span className="text-[7px] font-bold text-slate-600 uppercase tracking-tighter">Silent Alarm Triggered on Access</span>
+                                                    </div>
+                                                    <input type="checkbox" checked={isHoneyToken} onChange={(e) => setIsHoneyToken(e.target.checked)} className="w-3.5 h-3.5 rounded border-slate-700 bg-slate-900 text-red-500 focus:ring-red-500/50" />
                                                 </label>
 
                                                 {policyTimeLock && (
@@ -1001,30 +1212,55 @@ export default function VaultDashboard({ session, onLogout, onOpenSettings }: Pr
                                                 )}
                                             </div>
 
-                                            <div className="space-y-2">
-                                                <label className="flex items-center justify-between p-2 hover:bg-white/5 rounded-lg cursor-pointer transition-colors group">
-                                                    <div className="flex flex-col">
-                                                        <span className="text-[9px] font-bold text-slate-400 group-hover:text-slate-200 uppercase tracking-tight">Future Unlock (Future-Dated Release)</span>
-                                                        <span className="text-[7px] text-slate-600 uppercase font-black tracking-tighter">Lock until specific date</span>
-                                                    </div>
-                                                    <input type="checkbox" checked={!!policyLockedUntil} onChange={(e) => setPolicyLockedUntil(e.target.checked ? new Date().toISOString().slice(0, 16) : '')} className="w-3.5 h-3.5 rounded border-slate-700 bg-slate-900 text-blue-500 focus:ring-blue-500/50" />
-                                                </label>
+                                            <label className="flex items-center justify-between p-2 hover:bg-white/5 rounded-lg cursor-pointer transition-colors group">
+                                                <div className="flex flex-col">
+                                                    <span className="text-[9px] font-bold text-slate-400 group-hover:text-slate-200 uppercase tracking-tight">Future Unlock (Future-Dated Release)</span>
+                                                    <span className="text-[7px] text-slate-600 uppercase font-black tracking-tighter">Lock until specific date</span>
+                                                </div>
+                                                <input
+                                                    type="checkbox"
+                                                    checked={!!policyLockedUntil}
+                                                    onChange={(e) => {
+                                                        if (e.target.checked) {
+                                                            // Default to +1 hour from now for better UX
+                                                            const d = new Date();
+                                                            d.setHours(d.getHours() + 1);
+                                                            setPolicyLockedUntil(d.toISOString());
+                                                        } else {
+                                                            setPolicyLockedUntil('');
+                                                        }
+                                                    }}
+                                                    className="w-3.5 h-3.5 rounded border-slate-700 bg-slate-900 text-blue-500 focus:ring-blue-500/50"
+                                                />
+                                            </label>
 
-                                                {policyLockedUntil && (
-                                                    <motion.div
-                                                        initial={{ opacity: 0, scale: 0.95 }}
-                                                        animate={{ opacity: 1, scale: 1 }}
-                                                        className="px-2"
-                                                    >
-                                                        <input
-                                                            type="datetime-local"
-                                                            value={policyLockedUntil}
-                                                            onChange={(e) => setPolicyLockedUntil(e.target.value)}
-                                                            className="w-full p-2 bg-black/60 border border-blue-500/20 rounded-lg text-white text-[10px] uppercase font-bold outline-none focus:border-blue-500/50"
-                                                        />
-                                                    </motion.div>
-                                                )}
-                                            </div>
+                                            {policyLockedUntil && (
+                                                <motion.div
+                                                    initial={{ opacity: 0, scale: 0.95 }}
+                                                    animate={{ opacity: 1, scale: 1 }}
+                                                    className="px-2 space-y-2"
+                                                >
+                                                    {new Date(policyLockedUntil) > new Date() && (
+                                                        <div className="flex items-center gap-2 px-2 py-1.5 bg-rose-500/10 border border-rose-500/20 rounded-md">
+                                                            <Lock className="w-2.5 h-2.5 text-rose-500" />
+                                                            <span className="text-[7px] font-black text-rose-500 uppercase tracking-widest">TEMPORAL SHIELD ACTIVE: RELYING ON SYSTEM CLOCK</span>
+                                                        </div>
+                                                    )}
+                                                    <input
+                                                        type="datetime-local"
+                                                        value={policyLockedUntil && policyLockedUntil.includes('Z') ? new Date(new Date(policyLockedUntil).getTime() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 16) : policyLockedUntil}
+                                                        onChange={(e) => {
+                                                            const val = e.target.value;
+                                                            if (!val) {
+                                                                setPolicyLockedUntil('');
+                                                                return;
+                                                            }
+                                                            setPolicyLockedUntil(new Date(val).toISOString());
+                                                        }}
+                                                        className="w-full p-2 bg-black/60 border border-blue-500/20 rounded-lg text-white text-[10px] uppercase font-bold outline-none focus:border-blue-500/50"
+                                                    />
+                                                </motion.div>
+                                            )}
 
                                             <label className="flex items-center justify-between p-2 hover:bg-white/5 rounded-lg cursor-pointer transition-colors group">
                                                 <div className="flex flex-col">

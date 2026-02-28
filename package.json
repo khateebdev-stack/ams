@@ -10,6 +10,8 @@
   },
   "dependencies": {
     "@prisma/client": "^7.3.0",
+    "@simplewebauthn/browser": "^13.2.2",
+    "@simplewebauthn/server": "^13.2.2",
     "@types/crypto-js": "^4.2.2",
     "@types/speakeasy": "^2.0.10",
     "clsx": "^2.1.1",
@@ -31,7 +33,7 @@
     "@testing-library/dom": "^10.4.1",
     "@testing-library/react": "^16.3.2",
     "@types/libsodium-wrappers": "^0.7.14",
-    "@types/node": "^20",
+    "@types/node": "^20.19.33",
     "@types/otplib": "^7.0.0",
     "@types/qrcode": "^1.5.6",
     "@types/react": "^19",

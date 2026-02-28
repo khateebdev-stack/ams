@@ -5,7 +5,8 @@ import { randomUUID } from 'crypto';
 
 export async function POST(req: NextRequest) {
     try {
-        const { username, code, authHash } = await req.json();
+        const body = await req.json();
+        const { username, code, authHash, trustDevice, fingerprint } = body;
 
         if (!username || !code || !authHash) {
             return NextResponse.json({ error: 'Missing parameters' }, { status: 400 });
@@ -56,7 +57,6 @@ export async function POST(req: NextRequest) {
         });
 
         // 5. Handle Device Trust Request
-        const { trustDevice, fingerprint } = await req.json().catch(() => ({}));
         let issuedTrustToken = null;
 
         if (trustDevice && fingerprint) {

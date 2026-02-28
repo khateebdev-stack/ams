@@ -9,7 +9,7 @@ export async function getUserFromSession(req: Request) {
 
     const token = authHeader.split(' ')[1];
 
-    const session = await prisma.session.findUnique({
+    const session = await (prisma as any).session.findUnique({
         where: { tokenHash: token }, // In real app, hash the incoming token first
         include: { user: true },
     });
@@ -18,7 +18,12 @@ export async function getUserFromSession(req: Request) {
         return null;
     }
 
-    return session.user;
+    // Attach session metadata to user for downstream logic
+    const user = session.user;
+    (user as any).sessionIsLockedDown = session.isLockedDown;
+    (user as any).sessionThreatLevel = session.threatLevel;
+
+    return user;
 }
 
 export function unauthorized() {

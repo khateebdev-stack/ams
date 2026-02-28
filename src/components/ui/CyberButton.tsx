@@ -45,7 +45,7 @@ export default function CyberButton({
 
             {isLoading ? (
                 <div className="w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin" />
-            ) : children}
+            ) : (children as any)}
         </motion.button>
     );
 }

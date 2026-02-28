@@ -8,6 +8,7 @@ import { Loader2, LockOpen, LogIn, Shield, ArrowLeft, Cpu, Eye, EyeOff, ShieldCh
 import { motion, AnimatePresence } from 'framer-motion';
 import CyberButton from './ui/CyberButton';
 import { showToast } from './ui/Toast';
+import { authenticatePasskey } from '@/lib/passkey';
 
 interface Props {
     onSuccess: (session: any) => void;
@@ -78,6 +79,8 @@ export default function LoginForm({ onSuccess, onSwitchToRegister, onOpenRecover
                 token: loginData.sessionToken,
                 twoFactorEnabled: loginData.twoFactorEnabled,
                 vaultKey,
+                encryptedVaultKey: loginData.encryptedVaultKey,
+                encryptedRecoveryKey: loginData.encryptedRecoveryKey,
                 salt,
                 authHash,
             });
@@ -85,6 +88,50 @@ export default function LoginForm({ onSuccess, onSwitchToRegister, onOpenRecover
         } catch (err: any) {
             console.error(err);
             const msg = err.message || "Authorization failed. Check master sequence.";
+            setError(msg);
+            showToast(msg, 'error');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleHardwareUnlock = async () => {
+        setLoading(true);
+        setError('');
+        try {
+            await CryptoService.init();
+
+            // 1. Start Passkey Authentication
+            const authData = await authenticatePasskey();
+
+            if (!authData.verified || !authData.prfOutput) {
+                throw new Error('Hardware verification failed or PRF output missing.');
+            }
+
+            if (!authData.wrappedKey) {
+                throw new Error('This passkey is not bound to a hardware vault key. Enroll it in Settings first.');
+            }
+
+            // 2. Unwrap Vault Key using PRF Output
+            const vaultKey = await CryptoService.unwrapKeyWithHardware(authData.wrappedKey, authData.prfOutput);
+
+            // 3. Store in Memory and proceed
+            onSuccess({
+                username: authData.username,
+                token: authData.sessionToken,
+                twoFactorEnabled: false, // Passkey login often counts as 2FA itself
+                vaultKey,
+                encryptedVaultKey: authData.encryptedVaultKey,
+                encryptedRecoveryKey: authData.encryptedRecoveryKey,
+                salt: '', // Not used in hardware-only flow for derivation
+                authHash: '',
+            });
+
+            showToast('Hardware Identity Shield verified. Access Granted.', 'success');
+
+        } catch (err: any) {
+            console.error(err);
+            const msg = err.message || "Hardware authentication failed.";
             setError(msg);
             showToast(msg, 'error');
         } finally {
@@ -129,6 +176,8 @@ export default function LoginForm({ onSuccess, onSwitchToRegister, onOpenRecover
                 token: data.sessionToken,
                 twoFactorEnabled: data.twoFactorEnabled,
                 vaultKey,
+                encryptedVaultKey: data.encryptedVaultKey,
+                encryptedRecoveryKey: data.encryptedRecoveryKey,
                 salt: loginContext.salt,
                 authHash: loginContext.authHash,
             });
@@ -297,6 +346,27 @@ export default function LoginForm({ onSuccess, onSwitchToRegister, onOpenRecover
                             <LogIn className="w-4 h-4" />
                             AUTHORIZE ACCESS
                         </CyberButton>
+                    </motion.div>
+
+                    <motion.div variants={itemVariants} className="relative py-2">
+                        <div className="absolute inset-0 flex items-center">
+                            <div className="w-full border-t border-slate-800/50"></div>
+                        </div>
+                        <div className="relative flex justify-center text-[8px] font-black uppercase tracking-widest">
+                            <span className="bg-[#020617] px-2 text-slate-600">Secure Channels</span>
+                        </div>
+                    </motion.div>
+
+                    <motion.div variants={itemVariants}>
+                        <button
+                            type="button"
+                            onClick={handleHardwareUnlock}
+                            disabled={loading}
+                            className="w-full py-4 bg-blue-500/5 border border-blue-500/10 hover:border-blue-500/40 hover:bg-blue-500/10 rounded-2xl text-blue-400 font-bold transition-all flex items-center justify-center gap-3 group disabled:opacity-50"
+                        >
+                            {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <ShieldCheck className="w-4 h-4 group-hover:scale-110 transition-transform" />}
+                            UNLOCK WITH IDENTITY SHIELD
+                        </button>
                     </motion.div>
 
                     <motion.div variants={itemVariants} className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest pt-2">

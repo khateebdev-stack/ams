@@ -44,6 +44,7 @@ export async function GET(req: Request) {
             encryptedData: true,
             iv: true,
             updatedAt: true,
+            isHoneyToken: true,
         }
     });
 
@@ -57,7 +58,7 @@ export async function POST(req: Request) {
 
     try {
         const body = await req.json();
-        const { encryptedData, iv, vaultId, blindIndex } = body;
+        const { encryptedData, iv, vaultId, blindIndex, isHoneyToken } = body;
 
         if (!encryptedData || !iv || !vaultId) {
             return NextResponse.json({ error: 'Missing required data' }, { status: 400 });
@@ -69,7 +70,8 @@ export async function POST(req: Request) {
                 vaultId,
                 encryptedData,
                 iv,
-                blindIndex
+                blindIndex,
+                isHoneyToken: isHoneyToken || false
             },
         });
 

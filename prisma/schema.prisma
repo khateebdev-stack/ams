@@ -21,12 +21,16 @@ model User {
   // The VaultKey encrypted with the Recovery Key
   encryptedRecoveryKey String?
   
+  // WebAuthn state
+  currentChallenge     String?
+  
   createdAt            DateTime @default(now())
   
   vaults               Vault[]
   accounts             AccountEntry[]
   sessions             Session[]
   auditLogs            AuditLog[]
+  passkeys             Passkey[]
 }
 
 model Session {
@@ -36,6 +40,10 @@ model Session {
   tokenHash String   @unique // Hash of the session token
   expiresAt DateTime
   createdAt DateTime @default(now())
+  
+  // Threat-Aware State
+  threatLevel Int     @default(0)
+  isLockedDown Boolean @default(false)
 }
 
 model Vault {
@@ -71,6 +79,9 @@ model AccountEntry {
   lastAccessedAt DateTime @default(now())
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
+  
+  // Security Flag
+  isHoneyToken   Boolean  @default(false)
 }
 
 model AuditLog {
@@ -81,4 +92,22 @@ model AuditLog {
   ipAddress String?
   userAgent String?
   timestamp DateTime @default(now())
+}
+
+model Passkey {
+  id           String   @id @default(uuid())
+  userId       String
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  credentialId String   @unique
+  publicKey    String   // Base64 encoded public key for SQLite compatibility
+  counter      Int      @default(0)
+  deviceType   String   // 'singleDevice' or 'multiDevice'
+  backedUp     Boolean  @default(false)
+  transports   String?  // Comma-separated list
+  
+  // The VaultKey wrapped with the hardware PRF output
+  wrappedKey   String?
+  
+  createdAt    DateTime @default(now())
 }

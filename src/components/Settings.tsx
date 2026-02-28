@@ -1,16 +1,19 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Shield, Download, Lock, ArrowLeft, Terminal, AlertTriangle, Eye, EyeOff, RefreshCw, KeyRound, CheckCircle2, Wand2, Loader2, Trash2, ShieldCheck, Cpu } from 'lucide-react';
+import { Shield, Download, Lock, ArrowLeft, Terminal, AlertTriangle, Eye, EyeOff, RefreshCw, KeyRound, CheckCircle2, Wand2, Loader2, Trash2, ShieldCheck, Cpu, Zap, ShieldAlert } from 'lucide-react';
 import VerifyModal from './VerifyModal';
 import { CryptoService } from '@/lib/crypto';
+import { EnvironmentService } from '@/lib/environment';
 import { getPasswordStrength } from '@/lib/strength';
 import { generateSecurePassword } from '@/lib/generator';
 import { clsx } from 'clsx';
+import { motion } from 'framer-motion';
 import jsPDF from 'jspdf';
 import TwoFactorModal from './TwoFactorModal';
 import DeleteAccountModal from './DeleteAccountModal';
 import { showToast } from './ui/Toast';
+import { registerPasskey } from '@/lib/passkey';
 
 interface Props {
     session: any;
@@ -34,6 +37,14 @@ interface TrustToken {
     isCurrent: boolean;
 }
 
+interface PasskeyData {
+    id: string;
+    credentialId: string;
+    deviceType: string;
+    backedUp: boolean;
+    createdAt: string;
+}
+
 export default function Settings({ session, onBack, onUpdateSession }: Props) {
     const [loading, setLoading] = useState(false);
     const [showVerify, setShowVerify] = useState(false);
@@ -43,6 +54,7 @@ export default function Settings({ session, onBack, onUpdateSession }: Props) {
     const [decryptedKey, setDecryptedKey] = useState<string | null>(null);
     const [error, setError] = useState<string | null>(null);
     const [success, setSuccess] = useState<string | null>(null);
+    const [pendingPasskeyEnrollment, setPendingPasskeyEnrollment] = useState(false);
 
     // Audit Logs State
     const [logs, setLogs] = useState<AuditLog[]>([]);
@@ -57,14 +69,42 @@ export default function Settings({ session, onBack, onUpdateSession }: Props) {
     const [changeLoading, setChangeLoading] = useState(false);
 
     // Trust Management State
-    const [trustedDevices, setTrustedDevices] = useState<TrustToken[]>([]);
+    const [trustedDevices, setTrustedDevices] = useState<any[]>([]);
     const [trustLoading, setTrustLoading] = useState(true);
+    const [threatInfo, setThreatInfo] = useState<{ level: number, isLockedDown: boolean }>({ level: 0, isLockedDown: false });
+
+    useEffect(() => {
+        fetchPasskeys();
+        fetchTrustedDevices();
+        fetchSecurityStatus();
+        const int = setInterval(fetchSecurityStatus, 30000);
+        return () => clearInterval(int);
+    }, []);
+
+    const fetchSecurityStatus = async () => {
+        try {
+            const res = await fetch('/api/auth/status', {
+                headers: { 'Authorization': `Bearer ${session.token}` }
+            });
+            const data = await res.json();
+            setThreatInfo({ level: data.threatLevel || 0, isLockedDown: !!data.isLockedDown });
+            if (data.isLockedDown) {
+                CryptoService.setLockdown(true);
+            }
+        } catch (err) {
+            console.error('Failed to fetch security status', err);
+        }
+    };
+    // Passkey Management State
+    const [passkeys, setPasskeys] = useState<PasskeyData[]>([]);
+    const [passkeysLoading, setPasskeysLoading] = useState(true);
 
     const strength = getPasswordStrength(newMasterPass);
 
     useEffect(() => {
         fetchLogs();
         fetchTrustedDevices();
+        fetchPasskeys();
     }, []);
 
     const fetchLogs = async () => {
@@ -121,9 +161,72 @@ export default function Settings({ session, onBack, onUpdateSession }: Props) {
         }
     };
 
+    const fetchPasskeys = async () => {
+        setPasskeysLoading(true);
+        try {
+            const res = await fetch('/api/auth/passkey', {
+                headers: { 'Authorization': `Bearer ${session.token}` }
+            });
+            const data = await res.json();
+            if (res.ok) setPasskeys(data);
+        } catch (e) {
+            console.error("Failed to fetch passkeys", e);
+        } finally {
+            setPasskeysLoading(false);
+        }
+    };
+
+    const handleEnrollPasskey = async () => {
+        setPendingPasskeyEnrollment(true);
+        setShowVerify(true);
+    };
+
+    const proceedWithPasskeyEnrollment = async (masterKey: Uint8Array) => {
+        try {
+            setPasskeysLoading(true);
+
+            // 1. Decrypt the VaultKey using the provided masterKey
+            const vaultKey = await CryptoService.decryptKey(session.encryptedVaultKey, masterKey);
+
+            // 2. Start WebAuthn registration and wrap the VaultKey
+            await registerPasskey(vaultKey, session.token);
+
+            showToast('Hardware Identity enrolled. Shield Active.', 'success');
+            fetchPasskeys();
+            fetchLogs();
+        } catch (e: any) {
+            showToast(`Enrollment failed: ${e.message}`, 'error');
+        } finally {
+            setPasskeysLoading(false);
+            setPendingPasskeyEnrollment(false);
+        }
+    };
+
+    const handleRevokePasskey = async (id: string) => {
+        try {
+            const res = await fetch(`/api/auth/passkey?id=${id}`, {
+                method: 'DELETE',
+                headers: { 'Authorization': `Bearer ${session.token}` }
+            });
+            if (res.ok) {
+                showToast('Hardware Identity revoked.', 'success');
+                fetchPasskeys();
+                fetchLogs();
+            }
+        } catch (e) {
+            showToast('Failed to revoke passkey.', 'error');
+        }
+    };
+
     const handleVerifySuccess = async (masterKey: Uint8Array) => {
         setShowVerify(false);
         setError(null);
+
+        if (pendingPasskeyEnrollment) {
+            await proceedWithPasskeyEnrollment(masterKey);
+            return;
+        }
+
         try {
             const res = await fetch(`/api/user/salt?username=${session.username}`);
             const data = await res.json();
@@ -212,18 +315,53 @@ export default function Settings({ session, onBack, onUpdateSession }: Props) {
         setChangeLoading(true);
         setError(null);
         try {
-            // 1. We need the current vaultKey to re-encrypt it
-            // 2. We skip full implementation here for brevity, but logically it requires:
-            // Fetch salt -> Derive NEW master key -> Re-encrypt vaultKey -> Post to /api/auth/reset-password
+            await CryptoService.init();
 
-            // For now, let's keep it as a UI demonstration of strength meter
-            await new Promise(r => setTimeout(r, 1500));
+            // 1. Get current Vault Key from session
+            const vaultKey = session.vaultKey;
+            if (!vaultKey) throw new Error("Vault Key not found in session.");
+
+            // 2. Derive NEW Master Key with fingerprint
+            const newSalt = CryptoService.generateSalt();
+            const fingerprint = await EnvironmentService.getFingerprint();
+            const newMasterKey = await CryptoService.deriveMasterKey(newMasterPass, newSalt, fingerprint);
+
+            // 3. Re-encrypt Vault Key with NEW Master Key
+            const newEncryptedVaultKey = await CryptoService.encryptKey(vaultKey, newMasterKey);
+            const newAuthHash = await CryptoService.hashMasterKeyForAuth(newMasterKey);
+
+            // 4. Update on server
+            const res = await fetch('/api/auth/reset-password', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    username: session.username,
+                    authHash: newAuthHash,
+                    salt: newSalt,
+                    encryptedVaultKey: newEncryptedVaultKey
+                }),
+            });
+
+            if (!res.ok) {
+                const data = await res.json();
+                throw new Error(data.error || 'Failed to update master secret.');
+            }
+
+            // 5. Update local session state
+            onUpdateSession?.({
+                salt: newSalt,
+                authHash: newAuthHash,
+                encryptedVaultKey: newEncryptedVaultKey
+            });
+
             showToast('Master Secret updated. Cryptographic core re-initialized.', 'success');
             setShowChangePass(false);
-            setSuccess("Password change feature is simulated for now. Full re-encryption logic and API integrated in reset-password flow.");
-        } catch (e) {
-            showToast('Secret update protocol failed.', 'error');
-            setError("Failed to change password.");
+            setNewMasterPass('');
+            setConfirmPass('');
+        } catch (err: any) {
+            console.error('Password Change Error:', err);
+            showToast(err.message || 'Secret update protocol failed.', 'error');
+            setError(err.message || "Failed to change password.");
         } finally {
             setLoading(false);
             setChangeLoading(false);
@@ -238,6 +376,7 @@ export default function Settings({ session, onBack, onUpdateSession }: Props) {
                 expectedAuthHash={session.authHash}
                 onVerified={handleVerifySuccess}
                 onClose={() => setShowVerify(false)}
+                session={session}
             />
 
             <div className="space-y-6 w-full">
@@ -255,6 +394,86 @@ export default function Settings({ session, onBack, onUpdateSession }: Props) {
                         <CheckCircle2 className="w-5 h-5 flex-shrink-0" /> {success}
                     </div>
                 )}
+
+                {/* Shield Analytics & Threat Monitor */}
+                <section className="p-6 bg-slate-900/40 border border-slate-800 rounded-2xl shadow-xl overflow-hidden relative">
+                    <div className="absolute top-0 right-0 p-4">
+                        <div className={clsx(
+                            "flex items-center gap-1.5 px-2 py-1 rounded-full border text-[8px] font-black uppercase tracking-widest",
+                            threatInfo.isLockedDown
+                                ? "bg-red-500/10 border-red-500/30 text-red-500 animate-pulse"
+                                : "bg-emerald-500/10 border-emerald-500/30 text-emerald-500"
+                        )}>
+                            <div className={clsx("w-1.5 h-1.5 rounded-full", threatInfo.isLockedDown ? "bg-red-500" : "bg-emerald-500")} />
+                            {threatInfo.isLockedDown ? "Silent Lockdown Active" : "Defenses Nominal"}
+                        </div>
+                    </div>
+
+                    <div className="flex items-center gap-3 mb-6">
+                        <Zap className="w-5 h-5 text-blue-500" />
+                        <h3 className="text-xl font-bold text-white uppercase tracking-widest text-sm md:text-base">Shield Analytics</h3>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div className="p-4 bg-black/40 border border-slate-800 rounded-xl">
+                            <span className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Session Threat Level</span>
+                            <div className="flex items-end gap-2">
+                                <span className={clsx(
+                                    "text-3xl font-black italic",
+                                    threatInfo.level === 0 ? "text-slate-700" : threatInfo.level < 3 ? "text-yellow-500" : "text-red-500"
+                                )}>
+                                    {threatInfo.level.toString().padStart(2, '0')}
+                                </span>
+                                <span className="text-[10px] font-bold text-slate-600 uppercase tracking-tighter mb-1">/ 03 Threshold</span>
+                            </div>
+                            <div className="mt-3 h-1.5 w-full bg-slate-900 rounded-full overflow-hidden">
+                                <motion.div
+                                    initial={{ width: 0 }}
+                                    animate={{ width: `${Math.min(100, (threatInfo.level / 3) * 100)}%` }}
+                                    className={clsx(
+                                        "h-full transition-all duration-1000",
+                                        threatInfo.level === 0 ? "bg-slate-700" : threatInfo.level < 3 ? "bg-yellow-500" : "bg-red-500"
+                                    )}
+                                />
+                            </div>
+                        </div>
+
+                        <div className="p-4 bg-black/40 border border-slate-800 rounded-xl relative overflow-hidden group">
+                            <span className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Active Mitigation</span>
+                            <div className="flex items-center gap-3 mt-2">
+                                {threatInfo.isLockedDown ? (
+                                    <>
+                                        <div className="w-8 h-8 rounded-lg bg-red-500/20 flex items-center justify-center text-red-500 border border-red-500/20">
+                                            <Lock className="w-4 h-4" />
+                                        </div>
+                                        <div>
+                                            <p className="text-[10px] font-black text-red-500 uppercase tracking-widest">Protocol Lockdown</p>
+                                            <p className="text-[8px] text-slate-500 font-bold uppercase tracking-tighter">Decoy Buffers Active</p>
+                                        </div>
+                                    </>
+                                ) : (
+                                    <>
+                                        <div className="w-8 h-8 rounded-lg bg-emerald-500/20 flex items-center justify-center text-emerald-500 border border-emerald-500/20">
+                                            <ShieldCheck className="w-4 h-4" />
+                                        </div>
+                                        <div>
+                                            <p className="text-[10px] font-black text-emerald-500 uppercase tracking-widest">Axiom Guardian</p>
+                                            <p className="text-[8px] text-slate-500 font-bold uppercase tracking-tighter">Proactive Monitoring</p>
+                                        </div>
+                                    </>
+                                )}
+                            </div>
+                            <div className="absolute -right-4 -bottom-4 opacity-5 group-hover:opacity-10 transition-opacity">
+                                <ShieldAlert className="w-16 h-16 text-white" />
+                            </div>
+                        </div>
+                    </div>
+
+                    <p className="mt-4 text-[9px] text-slate-600 font-bold uppercase tracking-wider italic leading-relaxed">
+                        Threat-Aware Behavior triggers automatically when suspicious patterns (e.g., honey-token access) are detected.
+                        Lockdown simulates failures to neutralize adversaries without escalating visibility.
+                    </p>
+                </section>
 
                 {/* Emergency Kit Section */}
                 <section className="p-6 bg-slate-900 border border-slate-800 rounded-2xl shadow-xl">
@@ -431,6 +650,66 @@ export default function Settings({ session, onBack, onUpdateSession }: Props) {
                             </button>
                         )}
 
+                        {/* Hardware Identity Section */}
+                        <div className="pt-6 border-t border-slate-800">
+                            <div className="flex items-center justify-between mb-4">
+                                <div className="flex items-center gap-2">
+                                    <Cpu className="w-5 h-5 text-blue-500" />
+                                    <h4 className="text-sm font-bold text-white uppercase tracking-widest">Hardware Identity Shields</h4>
+                                </div>
+                                <span className="text-[10px] font-black text-slate-500 uppercase tracking-tighter">
+                                    {passkeys.length} Active {passkeys.length === 1 ? 'Shield' : 'Shields'}
+                                </span>
+                            </div>
+
+                            <div className="space-y-3">
+                                {passkeysLoading ? (
+                                    <div className="flex justify-center py-4"><Loader2 className="w-5 h-5 animate-spin text-slate-700" /></div>
+                                ) : passkeys.length === 0 ? (
+                                    <button
+                                        onClick={handleEnrollPasskey}
+                                        className="w-full py-4 border border-blue-500/30 border-dashed hover:border-blue-500 hover:bg-blue-500/5 text-blue-400 hover:text-blue-300 rounded-xl font-bold transition-all flex items-center justify-center gap-2 group"
+                                    >
+                                        <ShieldCheck className="w-4 h-4 group-hover:scale-110 transition-transform" /> Enroll New Hardware Shield
+                                    </button>
+                                ) : (
+                                    <>
+                                        {passkeys.map(pk => (
+                                            <div key={pk.id} className="p-3 bg-black/40 border border-slate-800 rounded-xl flex items-center justify-between gap-4 transition-all">
+                                                <div className="flex items-center gap-3 overflow-hidden">
+                                                    <div className="w-10 h-10 rounded-lg flex items-center justify-center bg-blue-500/10 border border-blue-500/20 text-blue-500">
+                                                        <Cpu className="w-5 h-5" />
+                                                    </div>
+                                                    <div className="overflow-hidden">
+                                                        <h5 className="text-[10px] font-black text-white uppercase tracking-widest flex items-center gap-2">
+                                                            Hardware Passkey
+                                                            <span className="px-1.5 py-0.5 bg-emerald-500/20 text-emerald-400 text-[8px] rounded border border-emerald-500/30 uppercase">Secure</span>
+                                                        </h5>
+                                                        <p className="text-[8px] text-slate-500 font-bold uppercase tracking-tighter truncate">
+                                                            ID: {pk.credentialId.substring(0, 16)}... | {pk.deviceType} | {new Date(pk.createdAt).toLocaleDateString()}
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                                <button
+                                                    onClick={() => handleRevokePasskey(pk.id)}
+                                                    className="p-2 text-slate-500 hover:text-red-500 hover:bg-red-500/10 rounded-lg transition-all"
+                                                    title="Revoke Shield"
+                                                >
+                                                    <Trash2 className="w-4 h-4" />
+                                                </button>
+                                            </div>
+                                        ))}
+                                        <button
+                                            onClick={handleEnrollPasskey}
+                                            className="w-full py-2 text-[10px] font-black text-blue-500 hover:text-blue-400 uppercase tracking-widest transition-colors flex items-center justify-center gap-2"
+                                        >
+                                            <Wand2 className="w-3 h-3" /> Enroll Additional Shield
+                                        </button>
+                                    </>
+                                )}
+                            </div>
+                        </div>
+
                         {/* Trusted Devices Section */}
                         <div className="pt-6 border-t border-slate-800">
                             <div className="flex items-center justify-between mb-4">
@@ -574,6 +853,18 @@ export default function Settings({ session, onBack, onUpdateSession }: Props) {
                 token={session.token}
                 salt={session.salt}
                 twoFactorEnabled={twoFactorEnabled}
+            />
+
+            <VerifyModal
+                isOpen={showVerify}
+                onClose={() => {
+                    setShowVerify(false);
+                    setPendingPasskeyEnrollment(false);
+                }}
+                onVerified={handleVerifySuccess}
+                session={session}
+                userSalt={session.salt}
+                expectedAuthHash={session.authHash}
             />
         </div>
     );

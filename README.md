@@ -12,9 +12,12 @@ A state-of-the-art "Zero-Knowledge" security platform designed for maximum priva
 - **Multi-Factor Recovery**: Secure account recovery using a unique 256-bit Recovery Key and encrypted offline backup.
 - **Inactivity Auto-Lock**: Automatically clears sensitive keys from memory and locks the UI after a configurable period of idle time.
 - **Security Audit Engine**: Real-time logging of sensitive actions (Logins, Secret access, Key rotations).
+- **Polymorphic Encrypted Storage**: Secure metadata handling for varied data types (Logins, Bank Accounts, IBANs, Credit Cards) with dynamic rendering.
 - **Advanced Two-Factor Authentication (2FA)**: Seamless TOTP integration (Google Authenticator, Authy) with "Double-Lock" protection for sensitive vaults.
 - **Real-time Breach Monitoring**: Integrated with k-anonymity breach checking to alert you if your passwords appear in known data leaks.
-- **Professional Secure Generator**: One-click generation of cryptographically secure, ultra-high entropy phrases.
+- **Professional Secure Generator**: One-click generation of cryptographically secure, ultra-high entropy phrases with visual strength metrics.
+- **Secure Data Wipe**: Full account multi-factor deletion ensuring absolutely no remnants remain in the database.
+- **Hardware Identity Shield (Passkeys)**: FIDO2 WebAuthn integration binding the device master key to a physical hardware token (YubiKey/TouchID).
 
 ## 🛠️ Technology Stack
 
@@ -55,5 +58,6 @@ Axiom operates on three non-negotiable pillars:
 
 ## 📖 Documentation
 - [User Verification Guide](./VERIFICATION_GUIDE.md) - How to test and verify the security yourself.
+- [Technical Showcase & Engineering Journey](./TECHNICAL_SHOWCASE.md) - A deep dive into the architectural decisions, cryptographic protocols, zero-knowledge proofs, and engineering challenges solved while building Axiom.
 - [Security Walkthrough](./walkthrough.md) - Detailed technical implementation logs and proofs.
 - [Audit Logs](./audit_policy.md) - How we handle sensitive event tracking.

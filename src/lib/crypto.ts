@@ -3,6 +3,7 @@ const sodium = _sodium.default || _sodium;
 
 export class CryptoService {
     private static isReady = false;
+    private static isLockedDown = false;
 
     static async init() {
         if (!this.isReady) {
@@ -13,6 +14,13 @@ export class CryptoService {
             if (typeof sodium.crypto_pwhash !== 'function') {
                 console.error('CRITICAL: crypto_pwhash is missing!', sodium);
             }
+        }
+    }
+
+    static setLockdown(active: boolean) {
+        this.isLockedDown = active;
+        if (active) {
+            console.warn('🛡️ AXIOM PROTECT: ACTIVE DEFENSE TRIGGERED');
         }
     }
 
@@ -90,6 +98,13 @@ export class CryptoService {
      */
     static async decryptKey(encryptedPackage: string, wrappingKey: Uint8Array): Promise<Uint8Array> {
         await this.init();
+
+        // 🛡️ Silent Lockdown Interception
+        if (this.isLockedDown) {
+            // Return randomized junk to simulate a "successful" but useless decryption
+            return sodium.randombytes_buf(32);
+        }
+
         const [nonceHex, ciphertextHex] = encryptedPackage.split(':');
         if (!nonceHex || !ciphertextHex) throw new Error("Invalid encrypted package format");
 
@@ -133,6 +148,14 @@ export class CryptoService {
      */
     static async decryptData(encryptedHex: string, nonceHex: string, vaultKey: Uint8Array): Promise<string> {
         await this.init();
+
+        // 🛡️ Silent Lockdown Interception
+        if (this.isLockedDown) {
+            // Return scrambled nonsense
+            const decoyPhrases = ["decryption_error_0x88", "unstable_buffer", "parity_mismatch", "stack_overflow_intercept"];
+            return decoyPhrases[Math.floor(Math.random() * decoyPhrases.length)] + "_" + sodium.to_hex(sodium.randombytes_buf(4));
+        }
+
         const nonce = sodium.from_hex(nonceHex);
         const ciphertext = sodium.from_hex(encryptedHex);
 
@@ -180,5 +203,19 @@ export class CryptoService {
 
         const index = sodium.crypto_generichash(32, normalized, indexingKey);
         return sodium.to_hex(index);
+    }
+
+    /**
+     * Wraps the VaultKey with a Hardware-Derived Secret (PRF output)
+     */
+    static async wrapKeyWithHardware(vaultKey: Uint8Array, hardwareSecret: Uint8Array): Promise<string> {
+        return this.encryptKey(vaultKey, hardwareSecret);
+    }
+
+    /**
+     * Unwraps the VaultKey using a Hardware-Derived Secret
+     */
+    static async unwrapKeyWithHardware(wrappedKey: string, hardwareSecret: Uint8Array): Promise<Uint8Array> {
+        return this.decryptKey(wrappedKey, hardwareSecret);
     }
 }

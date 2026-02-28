@@ -19,6 +19,7 @@ interface DB {
     vaults: any[]; // New
     auditLogs: any[];
     trustTokens: any[];
+    passkeys: any[];
 }
 
 function readDB(): DB {
@@ -31,10 +32,11 @@ function readDB(): DB {
             items: parsed.items || [],
             vaults: parsed.vaults || [],
             auditLogs: parsed.auditLogs || [],
-            trustTokens: parsed.trustTokens || []
+            trustTokens: parsed.trustTokens || [],
+            passkeys: parsed.passkeys || []
         };
     } catch (e) {
-        return { users: [], sessions: [], items: [], vaults: [], auditLogs: [], trustTokens: [] };
+        return { users: [], sessions: [], items: [], vaults: [], auditLogs: [], trustTokens: [], passkeys: [] };
     }
 }
 
@@ -42,7 +44,15 @@ function writeDB(data: DB) {
     fs.writeFileSync(DB_FILE, JSON.stringify(data, null, 2));
 }
 
-export const db = {
+export const db: {
+    user: any;
+    vault: any;
+    session: any;
+    accountEntry: any;
+    auditLog: any;
+    trustToken: any;
+    passkey: any;
+} = {
     user: {
         findUnique: async ({ where }: any) => {
             const db = readDB();
@@ -250,6 +260,37 @@ export const db = {
             }
             writeDB(db);
             return true;
+        }
+    },
+    passkey: {
+        findMany: async ({ where }: any) => {
+            const db = readDB();
+            return db.passkeys.filter(p => !where || p.userId === where.userId);
+        },
+        findUnique: async ({ where }: any) => {
+            const db = readDB();
+            return db.passkeys.find(p => p.id === where.id || p.credentialId === where.credentialId) || null;
+        },
+        create: async ({ data }: any) => {
+            const db = readDB();
+            const newPasskey = { id: crypto.randomUUID(), ...data, createdAt: new Date() };
+            db.passkeys.push(newPasskey);
+            writeDB(db);
+            return newPasskey;
+        },
+        delete: async ({ where }: any) => {
+            const db = readDB();
+            db.passkeys = db.passkeys.filter(p => p.id !== where.id);
+            writeDB(db);
+            return true;
+        },
+        update: async ({ where, data }: any) => {
+            const db = readDB();
+            const index = db.passkeys.findIndex(p => p.id === where.id || p.credentialId === where.credentialId);
+            if (index === -1) throw new Error("Passkey not found");
+            db.passkeys[index] = { ...db.passkeys[index], ...data };
+            writeDB(db);
+            return db.passkeys[index];
         }
     }
 };

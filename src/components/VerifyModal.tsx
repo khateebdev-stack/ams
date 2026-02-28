@@ -19,6 +19,8 @@ interface Props {
 }
 
 export default function VerifyModal({
+    isOpen: propIsOpen,
+    onClose,
     onVerified,
     userSalt,
     expectedAuthHash,
@@ -27,7 +29,7 @@ export default function VerifyModal({
     actionLabel,
     forceVerify
 }: Props) {
-    const [isOpen, setIsOpen] = useState(false);
+    const [isInternalOpen, setIsInternalOpen] = useState(false);
     const [password, setPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);
     const [loading, setLoading] = useState(false);
@@ -38,12 +40,19 @@ export default function VerifyModal({
     const authHash = expectedAuthHash || session?.authHash;
 
     useEffect(() => {
-        if (isOpen) {
+        if (isInternalOpen) {
             setPassword('');
             setShowPassword(false);
             setError('');
         }
-    }, [isOpen]);
+    }, [isInternalOpen]);
+
+    // Update internal state if prop changes
+    useEffect(() => {
+        if (propIsOpen !== undefined) {
+            setIsInternalOpen(propIsOpen);
+        }
+    }, [propIsOpen]);
 
     const handleVerify = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -59,7 +68,8 @@ export default function VerifyModal({
             if (derivedAuthHash === authHash) {
                 onVerified(masterKey);
                 setPassword('');
-                setIsOpen(false);
+                setIsInternalOpen(false);
+                if (onClose) onClose();
                 showToast('Authorization verified.', 'success');
             } else {
                 const msg = 'AUTHENTICATION FAILED: INVALID SEQUENCE OR CONTEXT';
@@ -79,20 +89,23 @@ export default function VerifyModal({
         <>
             {/* Trigger wrapper */}
             {children && (
-                <div onClick={() => setIsOpen(true)} className="contents">
+                <div onClick={() => setIsInternalOpen(true)} className="contents">
                     {children}
                 </div>
             )}
 
             <AnimatePresence>
-                {isOpen && (
+                {isInternalOpen && (
                     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
                         <motion.div
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
                             exit={{ opacity: 0 }}
                             className="absolute inset-0 bg-black/80 backdrop-blur-md"
-                            onClick={() => setIsOpen(false)}
+                            onClick={() => {
+                                setIsInternalOpen(false);
+                                if (onClose) onClose();
+                            }}
                         />
 
                         <motion.div
@@ -115,7 +128,10 @@ export default function VerifyModal({
                                         className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full border-2 border-slate-950"
                                     />
                                 </div>
-                                <button onClick={() => setIsOpen(false)} className="p-2 hover:bg-white/5 rounded-full transition-colors text-slate-500 hover:text-white">
+                                <button onClick={() => {
+                                    setIsInternalOpen(false);
+                                    if (onClose) onClose();
+                                }} className="p-2 hover:bg-white/5 rounded-full transition-colors text-slate-500 hover:text-white">
                                     <X className="w-5 h-5" />
                                 </button>
                             </div>
