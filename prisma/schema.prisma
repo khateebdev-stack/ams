@@ -23,6 +23,15 @@ model User {
   
   // WebAuthn state
   currentChallenge     String?
+
+  // Account Recovery
+  recoverySalt         String?
+  recoveryVaultKey     String?
+
+  // Two-Factor Authentication
+  twoFactorEnabled     Boolean  @default(false)
+  twoFactorSecret      String?
+  tempTwoFactorSecret  String?
   
   createdAt            DateTime @default(now())
   
@@ -77,6 +86,8 @@ model AccountEntry {
   encryptedData  String
   iv             String
   
+  blindIndex     String?
+
   lastAccessedAt DateTime @default(now())
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
@@ -87,12 +98,13 @@ model AccountEntry {
 
 model AuditLog {
   id        String   @id @default(uuid())
-  userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  action    String   
+  userId    String?
+  user      User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  username  String?
+  event     String   
   ipAddress String?
   userAgent String?
-  timestamp DateTime @default(now())
+  createdAt DateTime @default(now())
 }
 
 model Passkey {
@@ -101,13 +113,12 @@ model Passkey {
   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   
   credentialId String   @unique
-  publicKey    String   // Base64 encoded public key for SQLite compatibility
+  publicKey    String   
   counter      Int      @default(0)
-  deviceType   String   // 'singleDevice' or 'multiDevice'
+  deviceType   String   
   backedUp     Boolean  @default(false)
-  transports   String?  // Comma-separated list
+  transports   String?  
   
-  // The VaultKey wrapped with the hardware PRF output
   wrappedKey   String?
   
   createdAt    DateTime @default(now())
@@ -119,7 +130,9 @@ model TrustToken {
   user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   
   fingerprintHash String
-  name            String
+  token           String?
+  deviceName      String?
+  expiresAt       DateTime?
   createdAt       DateTime @default(now())
   
   @@unique([userId, fingerprintHash])
