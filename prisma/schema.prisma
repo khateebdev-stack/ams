@@ -6,7 +6,7 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
 }
 
 model User {
@@ -31,6 +31,7 @@ model User {
   sessions             Session[]
   auditLogs            AuditLog[]
   passkeys             Passkey[]
+  trustTokens          TrustToken[]
 }
 
 model Session {
@@ -110,4 +111,16 @@ model Passkey {
   wrappedKey   String?
   
   createdAt    DateTime @default(now())
+}
+
+model TrustToken {
+  id              String   @id @default(uuid())
+  userId          String
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  fingerprintHash String
+  name            String
+  createdAt       DateTime @default(now())
+  
+  @@unique([userId, fingerprintHash])
 }

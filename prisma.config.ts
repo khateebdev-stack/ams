@@ -8,6 +8,6 @@ export default defineConfig({
         path: path.resolve(__dirname, "prisma/migrations"),
     },
     datasource: {
-        url: "file:./dev.db",
+        url: process.env.DATABASE_URL,
     },
 });
