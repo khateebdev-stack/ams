@@ -4,25 +4,37 @@ const globalForPrisma = globalThis as unknown as {
     prisma: PrismaClient | undefined;
 };
 
-export const prisma =
-    globalForPrisma.prisma ??
-    new PrismaClient({
-        log: process.env.NODE_ENV === 'development' ? ['error', 'warn'] : ['error'],
-    });
+// Lazy initialization prevents Next.js from crashing during the build phase's static tracking
+function getPrismaClient() {
+    if (!globalForPrisma.prisma) {
+        globalForPrisma.prisma = new PrismaClient({
+            log: process.env.NODE_ENV === 'development' ? ['error', 'warn'] : ['error'],
+        });
+    }
+    return globalForPrisma.prisma;
+}
 
-if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = prisma;
+export const prisma = new Proxy({} as PrismaClient, {
+    get(_, prop) {
+        return (getPrismaClient() as any)[prop];
+    }
+});
 
-// Mock-Compatible Adapter for Zero-Friction Migration
+if (process.env.NODE_ENV !== 'production') {
+    // Only bind globally if not in production to prevent hot-reload memory leaks
+    if (!globalForPrisma.prisma) getPrismaClient();
+}
+
+// Mock-Compatible Adapter for Zero-Friction Migration (Lazy Evaluated)
 export const db: any = {
-    user: prisma.user,
-    vault: prisma.vault,
-    session: prisma.session,
-    accountEntry: prisma.accountEntry,
-    auditLog: prisma.auditLog,
-    passkey: prisma.passkey,
+    get user() { return prisma.user; },
+    get vault() { return prisma.vault; },
+    get session() { return prisma.session; },
+    get accountEntry() { return prisma.accountEntry; },
+    get auditLog() { return prisma.auditLog; },
+    get passkey() { return prisma.passkey; },
     trustToken: {
         findUnique: async (args: any) => {
-            // Map legacy { userId, fingerprintHash } to Prisma's compound unique index
             if (args.where && args.where.userId && args.where.fingerprintHash && !args.where.userId_fingerprintHash) {
                 return prisma.trustToken.findUnique({
                     ...args,

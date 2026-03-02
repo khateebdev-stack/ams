@@ -1,5 +1,6 @@
 import { db as prisma } from '@/lib/db';
 import { getUserFromSession, unauthorized } from '@/lib/auth';
+export const dynamic = 'force-dynamic';
 import { NextResponse } from 'next/server';
 
 // GET: Fetch all sub-vaults for the user

@@ -1,3 +1,4 @@
+export const dynamic = 'force-dynamic';
 import { generateAuthenticationOptions } from '@simplewebauthn/server';
 import { db as prisma } from '@/lib/db';
 import { NextResponse } from 'next/server';

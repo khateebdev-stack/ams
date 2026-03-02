@@ -1,3 +1,4 @@
+export const dynamic = 'force-dynamic';
 import { generateRegistrationOptions } from '@simplewebauthn/server';
 import { db as prisma } from '@/lib/db';
 import { getUserFromSession, unauthorized } from '@/lib/auth';
